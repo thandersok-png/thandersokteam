@@ -7,15 +7,13 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
-  RefreshControl,
+  Alert,
   ScrollView,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
-import NetInfo from '@react-native-community/netinfo';
-import { collection, getDocs, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-const { createSpotCache, withCachedSnapshot } = require('../utils/spotCache');
 
 const COLORS = {
   primary: '#1a73e8',
@@ -25,7 +23,6 @@ const COLORS = {
   text: '#333333',
   textLight: '#666666',
   border: '#e0e0e0',
-  danger: '#c62828',
 };
 
 const CITIES = [
@@ -40,8 +37,7 @@ const CITIES = [
   { id: 'rhodes', name: 'Ρόδος', lat: 36.4351, lng: 28.2082 },
 ];
 
-const getCityByName = (name) => CITIES.find((city) => city.name === name);
-const spotCache = createSpotCache(10 * 60 * 1000);
+const getCityByName = (name) => CITIES.find(city => city.name === name);
 
 export default function MapScreen({ navigation }) {
   const [location, setLocation] = useState(null);
@@ -53,40 +49,29 @@ export default function MapScreen({ navigation }) {
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [mapRegion, setMapRegion] = useState(null);
   const [bookedSpotIds, setBookedSpotIds] = useState([]);
-  const [statusMessage, setStatusMessage] = useState('');
-  const [offline, setOffline] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
+  // Modal προσθήκης θέσης
   const [showAddModal, setShowAddModal] = useState(false);
   const [newSpotTitle, setNewSpotTitle] = useState('');
-  const [newSpotPrice, setNewSpotPrice] = useState('');
   const [newSpotCode, setNewSpotCode] = useState('');
+  const [newSpotAddress, setNewSpotAddress] = useState('');
+  const [newSpotPrice, setNewSpotPrice] = useState('');
+  const [newSpotAvailable, setNewSpotAvailable] = useState('');
+  const [newSpotCity, setNewSpotCity] = useState('Θεσσαλονίκη');
   const [selectedCoordinates, setSelectedCoordinates] = useState(null);
   const [addingSpot, setAddingSpot] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = NetInfo.addEventListener((state) => {
-      const isNetworkDown = !state.isConnected || state.isInternetReachable === false;
-      setOffline(isNetworkDown);
-      if (isNetworkDown) {
-        setStatusMessage('Δεν υπάρχει σύνδεση στο διαδίκτυο. Προβολή σε offline mode.');
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
+  // Φόρτωση τοποθεσίας
   useEffect(() => {
     (async () => {
       try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
+        let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
           setErrorMsg('Η άδεια τοποθεσίας απορρίφθηκε');
           setLoading(false);
           return;
         }
-
-        const currentLocation = await Location.getCurrentPositionAsync({});
+        let currentLocation = await Location.getCurrentPositionAsync({});
         setLocation(currentLocation);
       } catch (error) {
         setErrorMsg('Δεν μπόρεσε να βρει την τοποθεσία σας');
@@ -96,6 +81,7 @@ export default function MapScreen({ navigation }) {
     })();
   }, []);
 
+  // Ενημέρωση χάρτη όταν αλλάζει πόλη
   useEffect(() => {
     const cityCoords = getCityByName(selectedCity);
     if (cityCoords) {
@@ -108,34 +94,25 @@ export default function MapScreen({ navigation }) {
     }
   }, [selectedCity]);
 
-  const fetchSpots = async () => {
-    setLoading(true);
-    try {
-      const readSpots = async () => {
+  // Φόρτωση θέσεων
+  useEffect(() => {
+    const fetchSpots = async () => {
+      try {
         const q = query(collection(db, 'spots'), where('city', '==', selectedCity));
         const querySnapshot = await getDocs(q);
         const data = [];
         querySnapshot.forEach((doc) => {
           data.push({ id: doc.id, ...doc.data() });
         });
-        return data;
-      };
-
-      const data = await withCachedSnapshot(selectedCity, readSpots, spotCache, 10 * 60 * 1000);
-      setSpots(data);
-    } catch (error) {
-      console.error('❌ Σφάλμα φόρτωσης θέσεων:', error);
-      setStatusMessage('Δεν μπόρεσε να φορτωθούν οι θέσεις.');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => {
+        setSpots(data);
+      } catch (error) {
+        console.error('❌ Σφάλμα φόρτωσης θέσεων:', error);
+      }
+    };
     fetchSpots();
   }, [selectedCity]);
 
+  // Φόρτωση κλεισμένων θέσεων
   useEffect(() => {
     const fetchBookings = async () => {
       try {
@@ -143,60 +120,36 @@ export default function MapScreen({ navigation }) {
         const q = query(
           collection(db, 'bookings'),
           where('date', '==', today),
-          where('status', '==', 'confirmed')
+          where('status', '==', 'paid')
         );
         const snapshot = await getDocs(q);
         const ids = [];
         snapshot.forEach((doc) => {
           ids.push(doc.data().spotId);
         });
-
         setBookedSpotIds(ids);
-        console.log('🔒 Κλεισμένες θέσεις:', ids);
       } catch (error) {
         console.error('❌ Σφάλμα φόρτωσης κρατήσεων:', error);
       }
     };
-
     fetchBookings();
   }, []);
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    setStatusMessage(offline ? 'Δεν υπάρχει σύνδεση στο διαδίκτυο.' : '');
-    await fetchSpots();
-  };
 
   const handleLongPress = (event) => {
     const { coordinate } = event.nativeEvent;
     setSelectedCoordinates(coordinate);
     setNewSpotTitle('');
-    setNewSpotPrice('');
     setNewSpotCode('');
+    setNewSpotAddress('');
+    setNewSpotPrice('');
+    setNewSpotAvailable('');
+    setNewSpotCity(selectedCity);
     setShowAddModal(true);
   };
 
-  const checkSpotClosed = async (spotId) => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const q = query(
-        collection(db, 'bookings'),
-        where('spotId', '==', spotId),
-        where('date', '==', today),
-        where('status', '==', 'confirmed')
-      );
-
-      const snapshot = await getDocs(q);
-      return snapshot.docs.length > 0;
-    } catch (error) {
-      console.log('Σφάλμα ελέγχου κράτησης:', error);
-      return false;
-    }
-  };
-
   const handleAddSpotFromMap = async () => {
-    if (!newSpotTitle || !newSpotPrice || !newSpotCode || !selectedCoordinates) {
-      setStatusMessage('Συμπληρώστε όλα τα πεδία και επιλέξτε σημείο στον χάρτη.');
+    if (!newSpotTitle || !newSpotCode || !newSpotPrice) {
+      Alert.alert('Σφάλμα', 'Συμπληρώστε τίτλο, κωδικό και τιμή.');
       return;
     }
 
@@ -207,29 +160,31 @@ export default function MapScreen({ navigation }) {
       const newSpot = {
         title: newSpotTitle.trim(),
         spotCode: newSpotCode.toUpperCase().trim(),
-        address: `Θέση στο map, ${selectedCity}`,
+        address: newSpotAddress.trim() || `Θέση στον χάρτη, ${selectedCity}`,
         price: parseFloat(newSpotPrice) || 0,
-        available: '09:00 - 17:00',
+        available: newSpotAvailable || '09:00 - 17:00',
         latitude: selectedCoordinates.latitude,
         longitude: selectedCoordinates.longitude,
-        city: selectedCity,
+        city: newSpotCity || selectedCity,
         ownerId: user?.uid || 'demo_owner',
         active: true,
-        createdAt: serverTimestamp(),
+        createdAt: new Date(),
       };
 
       const docRef = await addDoc(collection(db, 'spots'), newSpot);
       setSpots([...spots, { id: docRef.id, ...newSpot }]);
-      setStatusMessage('Η θέση αποθηκεύτηκε.');
 
+      Alert.alert('Επιτυχία!', `Η θέση "${newSpotTitle}" προστέθηκε!`);
       setShowAddModal(false);
       setNewSpotTitle('');
-      setNewSpotPrice('');
       setNewSpotCode('');
+      setNewSpotAddress('');
+      setNewSpotPrice('');
+      setNewSpotAvailable('');
+      setNewSpotCity(selectedCity);
       setSelectedCoordinates(null);
     } catch (error) {
-      console.log('Σφάλμα:', error?.message || error);
-      setStatusMessage(error.message || 'Δεν μπόρεσε να αποθηκευτεί η θέση.');
+      Alert.alert('Σφάλμα', error.message || 'Δεν μπόρεσε να αποθηκευτεί η θέση.');
     } finally {
       setAddingSpot(false);
     }
@@ -237,14 +192,11 @@ export default function MapScreen({ navigation }) {
 
   const handleMarkerPress = (spot) => setSelectedSpot(spot);
   const handleCloseCard = () => setSelectedSpot(null);
-
-  const handleBooking = async (spot) => {
-    const isClosed = bookedSpotIds.includes(spot.id) || (await checkSpotClosed(spot.id));
-    if (isClosed) {
-      setStatusMessage('Η θέση είναι κλεισμένη για σήμερα.');
+  const handleBooking = (spot) => {
+    if (bookedSpotIds.includes(spot.id)) {
+      Alert.alert('🔴 Κλεισμένη Θέση', 'Αυτή η θέση είναι ήδη κλεισμένη για σήμερα.');
       return;
     }
-
     navigation.navigate('Κράτηση', { spot });
   };
 
@@ -259,41 +211,6 @@ export default function MapScreen({ navigation }) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>Φόρτωση...</Text>
-      </View>
-    );
-  }
-
-  if (errorMsg) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.error}>{errorMsg}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => {
-            setErrorMsg(null);
-            setLoading(true);
-            (async () => {
-              try {
-                const { status } = await Location.requestForegroundPermissionsAsync();
-                if (status !== 'granted') {
-                  setErrorMsg('Η άδεια τοποθεσίας απορρίφθηκε');
-                  setLoading(false);
-                  return;
-                }
-
-                const currentLocation = await Location.getCurrentPositionAsync({});
-                setLocation(currentLocation);
-              } catch (error) {
-                setErrorMsg('Δεν μπόρεσε να βρει την τοποθεσία σας');
-              } finally {
-                setLoading(false);
-              }
-            })();
-          }}
-        >
-          <Text style={styles.retryButtonText}>🔄 Προσπάθησε ξανά</Text>
-        </TouchableOpacity>
       </View>
     );
   }
@@ -329,7 +246,7 @@ export default function MapScreen({ navigation }) {
                   bookedSpotIds.includes(spot.id)
                     ? 'red'
                     : selectedSpot?.id === spot.id
-                    ? 'green'
+                    ? COLORS.secondary
                     : COLORS.primary
                 }
               />
@@ -340,7 +257,7 @@ export default function MapScreen({ navigation }) {
       </MapView>
 
       {selectedSpot && (
-        <View style={[styles.card, bookedSpotIds.includes(selectedSpot.id) && styles.cardClosed]}>
+        <View style={styles.card}>
           <TouchableOpacity style={styles.closeButton} onPress={handleCloseCard}>
             <Text style={styles.closeText}>✕</Text>
           </TouchableOpacity>
@@ -364,10 +281,10 @@ export default function MapScreen({ navigation }) {
             <Text style={styles.barValue}>{selectedSpot.price} €/ώρα</Text>
           </View>
 
-          <TouchableOpacity style={styles.bar} onPress={() => navigation.navigate('Reviews', { spot: selectedSpot })}>
-            <Text style={styles.barLabel}>⭐ Αξιολόγηση</Text>
-            <Text style={styles.barValue}>{selectedSpot.ratingCount ? `${'★'.repeat(Math.round(Number(selectedSpot.ratingAverage)))} ${Number(selectedSpot.ratingAverage).toFixed(1)} (${selectedSpot.ratingCount})` : 'Αξιολόγησε τη θέση'}</Text>
-          </TouchableOpacity>
+          <View style={styles.bar}>
+            <Text style={styles.barLabel}>🕐 Ώρες</Text>
+            <Text style={styles.barValue}>{selectedSpot.available || '09:00 - 17:00'}</Text>
+          </View>
 
           <Text style={styles.addressText}>📍 {selectedSpot.address}</Text>
 
@@ -386,64 +303,90 @@ export default function MapScreen({ navigation }) {
         </View>
       )}
 
-      {statusMessage ? <Text style={styles.statusMessage}>{statusMessage}</Text> : null}
-
+      {/* Modal Προσθήκης Θέσης */}
       <Modal visible={showAddModal} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>📍 Νέα Θέση</Text>
-            <Text style={styles.modalSubtitle}>
-              Συντεταγμένες: {selectedCoordinates?.latitude?.toFixed(4)}, {selectedCoordinates?.longitude?.toFixed(4)}
-            </Text>
+          <ScrollView contentContainerStyle={styles.modalScroll}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>📍 Νέα Θέση</Text>
+              <Text style={styles.modalSubtitle}>
+                Συντεταγμένες: {selectedCoordinates?.latitude?.toFixed(4)}, {selectedCoordinates?.longitude?.toFixed(4)}
+              </Text>
 
-            <Text style={styles.label}>Τίτλος *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="π.χ. Πυλωτή Αριστοτέλους"
-              value={newSpotTitle}
-              onChangeText={setNewSpotTitle}
-            />
+              <Text style={styles.label}>Τίτλος *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="π.χ. Πυλωτή Αριστοτέλους"
+                value={newSpotTitle}
+                onChangeText={setNewSpotTitle}
+              />
 
-            <Text style={styles.label}>Κωδικός *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="π.χ. A12"
-              value={newSpotCode}
-              onChangeText={setNewSpotCode}
-              autoCapitalize="characters"
-            />
+              <Text style={styles.label}>Κωδικός Θέσης *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="π.χ. A12, B3, 105"
+                value={newSpotCode}
+                onChangeText={setNewSpotCode}
+                autoCapitalize="characters"
+              />
 
-            <Text style={styles.label}>Τιμή (€/ώρα) *</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="π.χ. 1.50"
-              keyboardType="numeric"
-              value={newSpotPrice}
-              onChangeText={setNewSpotPrice}
-            />
+              <Text style={styles.label}>Διεύθυνση *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="π.χ. Αριστοτέλους 12, Θεσσαλονίκη"
+                value={newSpotAddress}
+                onChangeText={setNewSpotAddress}
+              />
 
-            <View style={styles.modalButtonRow}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalCancelButton]}
-                onPress={() => setShowAddModal(false)}
-              >
-                <Text style={styles.modalButtonText}>Ακύρωση</Text>
-              </TouchableOpacity>
+              <Text style={styles.label}>Τιμή (€/ώρα) *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="π.χ. 1.50"
+                keyboardType="numeric"
+                value={newSpotPrice}
+                onChangeText={setNewSpotPrice}
+              />
 
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalSaveButton, addingSpot && styles.buttonDisabled]}
-                onPress={handleAddSpotFromMap}
-                disabled={addingSpot}
-              >
-                <Text style={styles.modalButtonText}>
-                  {addingSpot ? 'Αποθήκευση...' : '💾 Αποθήκευση'}
-                </Text>
-              </TouchableOpacity>
+              <Text style={styles.label}>Ώρες διαθεσιμότητας</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="π.χ. 10:00 - 18:00"
+                value={newSpotAvailable}
+                onChangeText={setNewSpotAvailable}
+              />
+
+              <Text style={styles.label}>Πόλη *</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="π.χ. Θεσσαλονίκη"
+                value={newSpotCity}
+                onChangeText={setNewSpotCity}
+              />
+
+              <View style={styles.modalButtonRow}>
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalCancelButton]}
+                  onPress={() => setShowAddModal(false)}
+                >
+                  <Text style={styles.modalButtonText}>Ακύρωση</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.modalButton, styles.modalSaveButton, addingSpot && styles.buttonDisabled]}
+                  onPress={handleAddSpotFromMap}
+                  disabled={addingSpot}
+                >
+                  <Text style={styles.modalButtonText}>
+                    {addingSpot ? 'Αποθήκευση...' : '💾 Αποθήκευση'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
 
+      {/* Modal Επιλογής Πόλης */}
       <Modal visible={showCityPicker} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -476,38 +419,33 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   map: { flex: 1 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background, padding: 20 },
-  loadingText: { marginTop: 10, fontSize: 16, color: COLORS.textLight },
-  error: { fontSize: 16, color: 'red', textAlign: 'center', marginBottom: 20 },
-  retryButton: { backgroundColor: COLORS.primary, padding: 12, borderRadius: 8 },
-  retryButtonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 16 },
-  citySelector: { position: 'absolute', top: 28, left: 20, zIndex: 10, backgroundColor: COLORS.white, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, flexDirection: 'row', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.2, shadowRadius: 4, elevation: 5 },
+  citySelector: { position: 'absolute', top: 20, left: 20, zIndex: 10, backgroundColor: COLORS.white, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, flexDirection: 'row', alignItems: 'center', elevation: 5 },
   citySelectorText: { fontSize: 16, fontWeight: 'bold', color: COLORS.text },
   citySelectorArrow: { fontSize: 14, color: COLORS.textLight, marginLeft: 8 },
-  card: { position: 'absolute', top: 120, left: 20, right: 20, backgroundColor: COLORS.white, borderRadius: 16, padding: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 6 },
-  cardClosed: { borderWidth: 2, borderColor: COLORS.danger },
+  card: { position: 'absolute', bottom: 100, left: 20, right: 20, backgroundColor: COLORS.white, borderRadius: 16, padding: 16, elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
   closeButton: { position: 'absolute', top: 10, right: 14, zIndex: 10 },
   closeText: { fontSize: 18, color: '#999', fontWeight: 'bold' },
-  bookedBadge: { backgroundColor: '#ffebee', color: COLORS.danger, fontWeight: 'bold', textAlign: 'center', padding: 6, borderRadius: 8, marginBottom: 10 },
-  bar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  bookedBadge: { backgroundColor: '#ffebee', color: '#c62828', fontWeight: 'bold', textAlign: 'center', padding: 6, borderRadius: 8, marginBottom: 10 },
+  bar: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
   barLabel: { fontSize: 14, fontWeight: '600', color: COLORS.textLight },
   barValue: { fontSize: 16, fontWeight: 'bold', color: COLORS.text },
   addressText: { fontSize: 13, color: COLORS.textLight, marginTop: 8, marginBottom: 10, fontStyle: 'italic' },
-  bookButton: { backgroundColor: COLORS.primary, paddingVertical: 12, borderRadius: 10, alignItems: 'center' },
-  bookButtonDisabled: { backgroundColor: COLORS.danger },
+  bookButton: { backgroundColor: COLORS.primary, paddingVertical: 14, borderRadius: 10, alignItems: 'center' },
+  bookButtonDisabled: { backgroundColor: '#ccc' },
   bookButtonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 16 },
-  statusMessage: { position: 'absolute', top: 140, left: 20, right: 20, zIndex: 11, backgroundColor: '#fff', color: '#b71c1c', padding: 12, fontWeight: 'bold', borderRadius: 10, textAlign: 'center' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  modalContent: { backgroundColor: COLORS.white, borderRadius: 16, padding: 24, width: '90%', maxHeight: '80%' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center' },
+  modalScroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
+  modalContent: { backgroundColor: COLORS.white, borderRadius: 16, padding: 24, width: '100%' },
   modalTitle: { fontSize: 24, fontWeight: 'bold', color: COLORS.primary, textAlign: 'center', marginBottom: 4 },
   modalSubtitle: { fontSize: 12, color: COLORS.textLight, textAlign: 'center', marginBottom: 16 },
   label: { fontSize: 14, fontWeight: '600', color: COLORS.text, marginTop: 10, marginBottom: 4 },
-  input: { backgroundColor: COLORS.white, borderRadius: 10, padding: 12, fontSize: 16, borderWidth: 1, borderColor: COLORS.border, marginBottom: 4 },
+  input: { backgroundColor: COLORS.white, borderRadius: 10, padding: 12, fontSize: 16, borderWidth: 1, borderColor: COLORS.border },
   modalButtonRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20, gap: 10 },
   modalButton: { flex: 1, padding: 14, borderRadius: 10, alignItems: 'center' },
   modalCancelButton: { backgroundColor: COLORS.background, borderWidth: 1, borderColor: COLORS.border },
   modalSaveButton: { backgroundColor: COLORS.primary },
   modalButtonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 16 },
-  buttonDisabled: { backgroundColor: '#999' },
+  buttonDisabled: { opacity: 0.6 },
   modalCloseButton: { marginTop: 16, padding: 14, borderRadius: 10, backgroundColor: COLORS.background, alignItems: 'center' },
   modalCloseText: { fontSize: 16, fontWeight: 'bold', color: COLORS.textLight },
   cityOption: { padding: 14, borderRadius: 10, marginBottom: 8, backgroundColor: COLORS.background },
