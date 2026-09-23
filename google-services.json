@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "833584209576",
+    "project_id": "parckshare",
+    "storage_bucket": "parckshare.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:833584209576:android:8a88c3f725d7eb08c2ac9d",
+        "android_client_info": {
+          "package_name": "com.parkshare.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCo2IK9bt_DKQ5aFq69h_9yA4c8EWG3Tds"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
