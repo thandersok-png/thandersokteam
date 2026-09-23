@@ -5,7 +5,6 @@
     "version": "1.0.0",
     "scheme": "parkshare",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "plugins": [
       [
@@ -18,20 +17,11 @@
       ],
       "expo-notifications"
     ],
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#1a73e8"
-    },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1a73e8"
-      },
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyCRLPpzNBNbWYVug4qho00cKNkENNNBho4" 
