@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "ParkShare",
+    "slug": "parkshare-app",
+    "version": "1.0.0",
+    "scheme": "parkshare",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ],
+      "expo-notifications"
+    ],
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1a73e8"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1a73e8"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCRLPpzNBNbWYVug4qho00cKNkENNNBho4" 
+
+        }
+      },
+      "package": "com.parkshare.app"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0e2b8120-2566-4c4a-997f-6ecd518877e5"
+      }
+    }
+  }
+}
