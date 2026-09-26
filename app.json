@@ -6,6 +6,12 @@
     "scheme": "parkshare",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./icon.png",
+    "splash": {
+      "image": "./icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1E88E5"
+    },
     "plugins": [
       [
         "expo-build-properties",
@@ -29,7 +35,11 @@
 
         }
       },
-      "package": "com.parkshare.app"
+      "package": "com.parkshare.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./icon.png",
+        "backgroundColor": "#1E88E5"
+      }
     },
     "extra": {
       "eas": {
