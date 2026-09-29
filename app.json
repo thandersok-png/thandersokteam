@@ -7,11 +7,6 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "icon": "./icon.png",
-    "splash": {
-      "image": "./icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#1E88E5"
-    },
     "plugins": [
       [
         "expo-build-properties",
@@ -21,7 +16,15 @@
           }
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#1E88E5"
+        }
+      ]
     ],
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -31,8 +34,7 @@
       "googleServicesFile": "./google-services.json",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyCRLPpzNBNbWYVug4qho00cKNkENNNBho4" 
-
+          "apiKey": "AIzaSyCRLPpzNBNbWYVug4qhoo0cKNkENNNBho4"
         }
       },
       "package": "com.parkshare.app",
