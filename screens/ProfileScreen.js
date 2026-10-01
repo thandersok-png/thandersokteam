@@ -27,7 +27,6 @@ export default function ProfileScreen({ navigation }) {
           onPress: async () => {
             try {
               await signOut(auth);
-              // ✅ ΣΩΣΤΗ ΠΛΟΗΓΗΣΗ (χωρίς αντικείμενο)
               navigation.navigate('Login');
             } catch (error) {
               console.error('❌ Σφάλμα αποσύνδεσης:', error);
@@ -54,6 +53,14 @@ export default function ProfileScreen({ navigation }) {
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>🚪 Αποσύνδεση</Text>
       </TouchableOpacity>
+
+      {/* Copyright */}
+      <View style={styles.footer}>
+        <Text style={styles.copyrightText}>
+          © 2026 ParkShare. All rights reserved.
+        </Text>
+        <Text style={styles.versionText}>Έκδοση 1.0.0</Text>
+      </View>
     </View>
   );
 }
@@ -107,5 +114,22 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontWeight: 'bold',
     fontSize: 18,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  copyrightText: {
+    fontSize: 12,
+    color: '#888',
+    textAlign: 'center',
+  },
+  versionText: {
+    fontSize: 10,
+    color: '#aaa',
+    marginTop: 4,
   },
 });
