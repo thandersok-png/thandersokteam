@@ -25,6 +25,7 @@ const COLORS = {
   border: '#e0e0e0',
 };
 
+// ✅ Η λίστα των πόλεων — ΜΟΝΟ ΕΔΩ, στην αρχή του αρχείου
 const CITIES = [
   { id: 'athens', name: 'Αθήνα', lat: 37.9838, lng: 23.7275 },
   { id: 'thessaloniki', name: 'Θεσσαλονίκη', lat: 40.6401, lng: 22.9444 },
@@ -35,6 +36,13 @@ const CITIES = [
   { id: 'ioannina', name: 'Ιωάννινα', lat: 39.6650, lng: 20.8537 },
   { id: 'chania', name: 'Χανιά', lat: 35.5138, lng: 24.0180 },
   { id: 'rhodes', name: 'Ρόδος', lat: 36.4351, lng: 28.2082 },
+  { id: 'alexandroupoli', name: 'Αλεξανδρούπολη', lat: 40.8457, lng: 25.8743 },
+  { id: 'kavala', name: 'Καβάλα', lat: 40.9396, lng: 24.4069 },
+  { id: 'serres', name: 'Σέρρες', lat: 41.0852, lng: 23.5497 },
+  { id: 'kalamata', name: 'Καλαμάτα', lat: 37.0389, lng: 22.1142 },
+  { id: 'trikala', name: 'Τρίκαλα', lat: 39.5551, lng: 21.7680 },
+  { id: 'kerkyra', name: 'Κέρκυρα', lat: 39.6243, lng: 19.9217 },
+  { id: 'zakynthos', name: 'Ζάκυνθος', lat: 37.7870, lng: 20.8990 },
 ];
 
 const getCityByName = (name) => CITIES.find(city => city.name === name);
@@ -389,26 +397,28 @@ export default function MapScreen({ navigation }) {
       {/* Modal Επιλογής Πόλης */}
       <Modal visible={showCityPicker} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Επέλεξε Πόλη</Text>
-            {CITIES.map((city) => (
-              <TouchableOpacity
-                key={city.id}
-                style={[styles.cityOption, selectedCity === city.name && styles.cityOptionActive]}
-                onPress={() => {
-                  setSelectedCity(city.name);
-                  setShowCityPicker(false);
-                }}
-              >
-                <Text style={[styles.cityOptionText, selectedCity === city.name && styles.cityOptionTextActive]}>
-                  {city.name}
-                </Text>
+          <ScrollView contentContainerStyle={styles.modalScroll}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Επέλεξε Πόλη</Text>
+              {CITIES.map((city) => (
+                <TouchableOpacity
+                  key={city.id}
+                  style={[styles.cityOption, selectedCity === city.name && styles.cityOptionActive]}
+                  onPress={() => {
+                    setSelectedCity(city.name);
+                    setShowCityPicker(false);
+                  }}
+                >
+                  <Text style={[styles.cityOptionText, selectedCity === city.name && styles.cityOptionTextActive]}>
+                    {city.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowCityPicker(false)}>
+                <Text style={styles.modalCloseText}>Κλείσιμο</Text>
               </TouchableOpacity>
-            ))}
-            <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowCityPicker(false)}>
-              <Text style={styles.modalCloseText}>Κλείσιμο</Text>
-            </TouchableOpacity>
-          </View>
+            </View>
+          </ScrollView>
         </View>
       </Modal>
     </View>
