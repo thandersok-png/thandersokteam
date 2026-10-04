@@ -1,4 +1,4 @@
-import { STRIPE_API_URL } from '../stripe';
+import { API_URL } from '../stripe';
 
 // ==========================================
 // 1. Δημιουργία Payment Intent
@@ -7,7 +7,7 @@ export const createPaymentIntent = async (amountInCents, currency = 'eur') => {
   console.log('📤 Στέλνω amount:', amountInCents, '| τύπος:', typeof amountInCents);
 
   try {
-    const response = await fetch(`${STRIPE_API_URL}/create-payment-intent`, {
+    const response = await fetch(`${API_URL}/create-payment-intent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ export const createPaymentIntent = async (amountInCents, currency = 'eur') => {
 // ==========================================
 export const createConnectedAccount = async (email, country = 'GR') => {
   try {
-    const response = await fetch(`${STRIPE_API_URL}/create-connected-account`, {
+    const response = await fetch(`${API_URL}/create-connected-account`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ export const createConnectedAccount = async (email, country = 'GR') => {
 // ==========================================
 export const createTransfer = async (amountInCents, accountId) => {
   try {
-    const response = await fetch(`${STRIPE_API_URL}/create-transfer`, {
+    const response = await fetch(`${API_URL}/create-transfer`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

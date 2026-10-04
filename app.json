@@ -9,6 +9,12 @@
     "icon": "./icon.png",
     "plugins": [
       [
+        "react-native-maps",
+        {
+          "androidGoogleMapsApiKey": "AIzaSyCRLPpzNBNbWYVug4qhoo0cKNkENNNBho4"
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "android": {

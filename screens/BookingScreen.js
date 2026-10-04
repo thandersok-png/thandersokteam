@@ -12,7 +12,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { collection, addDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import { createPaymentIntent } from '../utils/paymentService';
-import { PLATFORM_COMMISSION_PERCENT, STRIPE_API_URL } from '../stripe';
+import { PLATFORM_COMMISSION_PERCENT, API_URL } from '../stripe';
 import { useStripe } from '@stripe/stripe-react-native';
 import { registerForPushNotifications } from '../utils/notifications';
 import COLORS from '../theme/colors';
@@ -46,7 +46,7 @@ export default function BookingScreen({ route, navigation }) {
         return;
       }
 
-      await fetch(`${STRIPE_API_URL}/notify/new-booking`, {
+      await fetch(`${API_URL}/notify/new-booking`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -72,7 +72,7 @@ export default function BookingScreen({ route, navigation }) {
         return;
       }
 
-      await fetch(`${STRIPE_API_URL}/notify/payment-confirmed`, {
+      await fetch(`${API_URL}/notify/payment-confirmed`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
