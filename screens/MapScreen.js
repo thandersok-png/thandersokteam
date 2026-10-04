@@ -11,19 +11,11 @@ import {
   ScrollView,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-
-const COLORS = {
-  primary: '#1a73e8',
-  secondary: '#4CAF50',
-  background: '#f5f5f5',
-  white: '#ffffff',
-  text: '#333333',
-  textLight: '#666666',
-  border: '#e0e0e0',
-};
+import COLORS from '../theme/colors';
 
 // ✅ Η λίστα των πόλεων — ΜΟΝΟ ΕΔΩ, στην αρχή του αρχείου
 const CITIES = [
@@ -176,7 +168,7 @@ export default function MapScreen({ navigation }) {
         city: newSpotCity || selectedCity,
         ownerId: user?.uid || 'demo_owner',
         active: true,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
       };
 
       const docRef = await addDoc(collection(db, 'spots'), newSpot);
@@ -304,9 +296,16 @@ export default function MapScreen({ navigation }) {
             onPress={() => handleBooking(selectedSpot)}
             disabled={bookedSpotIds.includes(selectedSpot.id)}
           >
-            <Text style={styles.bookButtonText}>
-              {bookedSpotIds.includes(selectedSpot.id) ? '🔴 Κλεισμένη' : '📅 Κράτηση'}
-            </Text>
+            <View style={styles.bookButtonContent}>
+              <Ionicons
+                name={bookedSpotIds.includes(selectedSpot.id) ? 'close-circle-outline' : 'calendar-outline'}
+                size={18}
+                color={COLORS.white}
+              />
+              <Text style={styles.bookButtonText}>
+                {bookedSpotIds.includes(selectedSpot.id) ? 'Κλεισμένη' : 'Κράτηση'}
+              </Text>
+            </View>
           </TouchableOpacity>
         </View>
       )}
@@ -432,7 +431,7 @@ const styles = StyleSheet.create({
   citySelector: { position: 'absolute', top: 20, left: 20, zIndex: 10, backgroundColor: COLORS.white, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20, flexDirection: 'row', alignItems: 'center', elevation: 5 },
   citySelectorText: { fontSize: 16, fontWeight: 'bold', color: COLORS.text },
   citySelectorArrow: { fontSize: 14, color: COLORS.textLight, marginLeft: 8 },
-  card: { position: 'absolute', bottom: 100, left: 20, right: 20, backgroundColor: COLORS.white, borderRadius: 16, padding: 16, elevation: 6, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
+  card: { position: 'absolute', bottom: 100, left: 20, right: 20, backgroundColor: COLORS.surface, borderRadius: 18, padding: 18, elevation: 6, shadowColor: '#101828', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 12, borderWidth: 1, borderColor: COLORS.border },
   closeButton: { position: 'absolute', top: 10, right: 14, zIndex: 10 },
   closeText: { fontSize: 18, color: '#999', fontWeight: 'bold' },
   bookedBadge: { backgroundColor: '#ffebee', color: '#c62828', fontWeight: 'bold', textAlign: 'center', padding: 6, borderRadius: 8, marginBottom: 10 },
@@ -440,7 +439,8 @@ const styles = StyleSheet.create({
   barLabel: { fontSize: 14, fontWeight: '600', color: COLORS.textLight },
   barValue: { fontSize: 16, fontWeight: 'bold', color: COLORS.text },
   addressText: { fontSize: 13, color: COLORS.textLight, marginTop: 8, marginBottom: 10, fontStyle: 'italic' },
-  bookButton: { backgroundColor: COLORS.primary, paddingVertical: 14, borderRadius: 10, alignItems: 'center' },
+  bookButton: { backgroundColor: COLORS.primary, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  bookButtonContent: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   bookButtonDisabled: { backgroundColor: '#ccc' },
   bookButtonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 16 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center' },

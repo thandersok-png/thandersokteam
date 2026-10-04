@@ -12,16 +12,7 @@ from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-
-const COLORS = {
-  primary: '#1a73e8',
-  secondary: '#4CAF50',
-  background: '#f5f5f5',
-  white: '#ffffff',
-  text: '#333333',
-  textLight: '#666666',
-  border: '#e0e0e0',
-};
+import COLORS from '../theme/colors';
 
 const CITY_DEFAULT_COORDS = {
   'Θεσσαλονίκη': { latitude: 40.6401, longitude: 22.9444 },

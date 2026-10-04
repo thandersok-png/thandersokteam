@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } fr
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { collection, getDocs, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import COLORS from '../theme/colors';
 
 export default function QRScannerScreen({ navigation }) {
   const [permission, requestPermission] = useCameraPermissions();
@@ -52,7 +53,7 @@ export default function QRScannerScreen({ navigation }) {
     }
   };
 
-  if (!permission) return <View style={styles.center}><ActivityIndicator color="#1a73e8" /></View>;
+  if (!permission) return <View style={styles.center}><ActivityIndicator color={COLORS.primary} /></View>;
   if (!permission.granted) {
     return (
       <View style={styles.center}>
@@ -90,11 +91,11 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   camera: { flex: 1 },
   overlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  scanFrame: { width: 250, height: 250, borderWidth: 3, borderColor: '#4CAF50', borderRadius: 16 },
+  scanFrame: { width: 250, height: 250, borderWidth: 3, borderColor: COLORS.secondary, borderRadius: 16 },
   instruction: { color: 'white', fontSize: 16, fontWeight: 'bold', textAlign: 'center', marginTop: 24, backgroundColor: '#0009', padding: 10, borderRadius: 8 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: '#f5f5f5' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: COLORS.background },
   title: { color: '#333', fontSize: 20, fontWeight: 'bold', textAlign: 'center' },
   message: { color: '#666', textAlign: 'center', marginVertical: 16 },
-  button: { backgroundColor: '#1a73e8', paddingVertical: 14, paddingHorizontal: 22, borderRadius: 10, marginTop: 18 },
+  button: { backgroundColor: COLORS.primary, paddingVertical: 14, paddingHorizontal: 22, borderRadius: 12, marginTop: 18 },
   buttonText: { color: 'white', fontWeight: 'bold' },
 });

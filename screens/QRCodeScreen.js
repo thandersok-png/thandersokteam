@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import COLORS from '../theme/colors';
 
 export default function QRCodeScreen({ route }) {
   const { spot } = route.params || {};
@@ -33,13 +34,13 @@ export default function QRCodeScreen({ route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', backgroundColor: '#f5f5f5', padding: 24, paddingTop: 50 },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#1a73e8', marginBottom: 8 },
+  container: { flex: 1, alignItems: 'center', backgroundColor: COLORS.background, padding: 24, paddingTop: 50 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
+  title: { fontSize: 24, fontWeight: '700', color: COLORS.primary, marginBottom: 8 },
   subtitle: { color: '#666', textAlign: 'center', marginBottom: 28, lineHeight: 21 },
-  codeCard: { padding: 22, backgroundColor: 'white', borderRadius: 16, elevation: 4, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
+  codeCard: { padding: 22, backgroundColor: COLORS.surface, borderRadius: 16, elevation: 4, shadowColor: '#101828', shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
   spotTitle: { fontSize: 21, fontWeight: 'bold', color: '#333', marginTop: 24 },
-  spotCode: { color: '#1a73e8', fontWeight: '600', marginTop: 6 },
+  spotCode: { color: COLORS.primary, fontWeight: '600', marginTop: 6 },
   note: { color: '#666', marginTop: 18, textAlign: 'center' },
   error: { color: '#b71c1c', fontWeight: 'bold' },
 });

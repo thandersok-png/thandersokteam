@@ -1,5 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import COLORS from '../theme/colors';
 
 export default function PrivacyPolicyScreen() {
   return (
@@ -41,9 +42,9 @@ export default function PrivacyPolicyScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: COLORS.background },
   content: { padding: 20, paddingBottom: 50 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#1a73e8', marginBottom: 6 },
+  title: { fontSize: 24, fontWeight: '700', color: COLORS.primary, marginBottom: 6 },
   updated: { color: '#666', marginBottom: 24 },
   heading: { fontSize: 18, fontWeight: 'bold', color: '#333', marginTop: 18, marginBottom: 8 },
   body: { fontSize: 15, lineHeight: 23, color: '#444' },

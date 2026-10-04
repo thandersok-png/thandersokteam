@@ -12,15 +12,7 @@ import {
 } from 'react-native';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
-
-const COLORS = {
-  primary: '#1a73e8',
-  background: '#f5f5f5',
-  white: '#ffffff',
-  text: '#333333',
-  textLight: '#666666',
-  border: '#e0e0e0',
-};
+import COLORS from '../theme/colors';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');

@@ -7,6 +7,7 @@ import { StripeProvider } from '@stripe/stripe-react-native';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase';
 import { STRIPE_PUBLISHABLE_KEY } from './stripe';
+import COLORS from './theme/colors';
 
 import LoginScreen from './screens/LoginScreen';
 import RegisterScreen from './screens/RegisterScreen';
@@ -27,20 +28,21 @@ import NotificationsScreen from './screens/NotificationsScreen';
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
 
-const COLORS = {
-  primary: '#1a73e8',
-  white: '#ffffff',
-};
-
 function MainDrawer() {
   return (
     <Drawer.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: COLORS.primary },
-        headerTitleStyle: { color: COLORS.white, fontWeight: 'bold' },
-        headerTintColor: COLORS.white,
+        headerStyle: { backgroundColor: COLORS.surface },
+        headerTitleStyle: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
+        headerTintColor: COLORS.primary,
+        headerShadowVisible: false,
+        sceneContainerStyle: { backgroundColor: COLORS.background },
+        drawerStyle: { backgroundColor: COLORS.surface, width: 300 },
         drawerActiveTintColor: COLORS.primary,
-        drawerInactiveTintColor: '#333',
+        drawerInactiveTintColor: COLORS.textLight,
+        drawerActiveBackgroundColor: COLORS.surfaceTint,
+        drawerItemStyle: { borderRadius: 12, marginHorizontal: 10, marginVertical: 3 },
+        drawerLabelStyle: { fontSize: 15, fontWeight: '600' },
       }}
     >
       <Drawer.Screen

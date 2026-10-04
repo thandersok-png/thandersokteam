@@ -4,14 +4,7 @@ import { useStripe } from '@stripe/stripe-react-native';
 import { doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { httpsCallable, getFunctions } from 'firebase/functions';
 import { auth, db, app } from '../firebase';
-
-const COLORS = {
-  primary: '#1a73e8',
-  background: '#f5f5f5',
-  text: '#333333',
-  muted: '#666666',
-  white: '#ffffff',
-};
+import COLORS from '../theme/colors';
 
 export default function PaymentScreen({ route, navigation }) {
   const { bookingId, amount, spotTitle } = route.params;

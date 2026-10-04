@@ -12,14 +12,7 @@ import {
   registerForPushNotifications,
   sendLocalNotification,
 } from '../utils/notifications';
-
-const COLORS = {
-  primary: '#1a73e8',
-  background: '#f5f5f5',
-  white: '#ffffff',
-  text: '#333333',
-  textLight: '#666666',
-};
+import COLORS from '../theme/colors';
 
 export default function NotificationsScreen() {
   const [pushEnabled, setPushEnabled] = useState(false);
@@ -140,9 +133,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   card: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.surface,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#101828',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 2,
     marginBottom: 12,
   },
   row: {

@@ -14,18 +14,8 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import NetInfo from '@react-native-community/netinfo';
 import { db } from '../firebase';
 import * as Location from 'expo-location';
+import COLORS from '../theme/colors';
 const { createSpotCache, withCachedSnapshot } = require('../utils/spotCache');
-
-const COLORS = {
-  primary: '#1a73e8',
-  secondary: '#4CAF50',
-  background: '#f5f5f5',
-  white: '#ffffff',
-  text: '#333333',
-  textLight: '#666666',
-  border: '#e0e0e0',
-  danger: '#c62828',
-};
 
 const CITIES = [
   { id: 'athens', name: 'Αθήνα', lat: 37.9838, lng: 23.7275 },
@@ -455,11 +445,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderLeftWidth: 4,
     borderLeftColor: COLORS.primary,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowColor: '#101828',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
   },
   cardClosed: { borderLeftColor: COLORS.danger, backgroundColor: '#fff3f3' },
   title: { fontSize: 20, fontWeight: 'bold', color: COLORS.text },

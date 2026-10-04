@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
+import COLORS from '../theme/colors';
 
 export default function OwnerRegisterScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -53,10 +54,10 @@ export default function OwnerRegisterScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 30, backgroundColor: '#f5f5f5' },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#1a73e8', textAlign: 'center', marginBottom: 30 },
+  container: { flex: 1, justifyContent: 'center', padding: 30, backgroundColor: COLORS.background },
+  title: { fontSize: 24, fontWeight: '700', color: COLORS.primary, textAlign: 'center', marginBottom: 30 },
   input: { backgroundColor: 'white', borderRadius: 10, padding: 14, borderWidth: 1, borderColor: '#ddd', marginBottom: 16 },
-  button: { backgroundColor: '#1a73e8', padding: 16, borderRadius: 12, alignItems: 'center' },
+  button: { backgroundColor: COLORS.primary, padding: 16, borderRadius: 12, alignItems: 'center' },
   buttonText: { color: 'white', fontWeight: 'bold', fontSize: 18 },
-  link: { marginTop: 20, textAlign: 'center', color: '#1a73e8', fontWeight: 'bold' },
+  link: { marginTop: 20, textAlign: 'center', color: COLORS.primary, fontWeight: '700' },
 });

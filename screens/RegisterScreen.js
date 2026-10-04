@@ -14,16 +14,7 @@ import {
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-
-const COLORS = {
-  primary: '#1a73e8',
-  secondary: '#4CAF50',
-  background: '#f5f5f5',
-  white: '#ffffff',
-  text: '#333333',
-  textLight: '#666666',
-  border: '#e0e0e0',
-};
+import COLORS from '../theme/colors';
 
 export default function RegisterScreen({ navigation }) {
   const [email, setEmail] = useState('');

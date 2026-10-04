@@ -22,7 +22,7 @@
         {
           "image": "./icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#1E88E5"
+          "backgroundColor": "#155EEF"
         }
       ]
     ],
@@ -40,7 +40,7 @@
       "package": "com.parkshare.app",
       "adaptiveIcon": {
         "foregroundImage": "./icon.png",
-        "backgroundColor": "#1E88E5"
+        "backgroundColor": "#155EEF"
       }
     },
     "extra": {

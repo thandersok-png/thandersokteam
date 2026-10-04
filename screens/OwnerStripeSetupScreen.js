@@ -12,15 +12,7 @@ import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/fire
 import { auth, db } from '../firebase';
 import { createConnectedAccount } from '../utils/paymentService';
 import { registerForPushNotifications } from '../utils/notifications';
-
-const COLORS = {
-  primary: '#1a73e8',
-  background: '#f5f5f5',
-  white: '#ffffff',
-  text: '#333333',
-  textLight: '#666666',
-  border: '#e0e0e0',
-};
+import COLORS from '../theme/colors';
 
 export default function OwnerStripeSetupScreen({ navigation }) {
   const [loading, setLoading] = useState(false);

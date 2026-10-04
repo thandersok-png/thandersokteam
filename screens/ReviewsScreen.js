@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { collection, doc, getDocs, query, runTransaction, serverTimestamp, where } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import COLORS from '../theme/colors';
 
 const StarRating = ({ value, onChange, disabled = false }) => (
   <View style={styles.starsRow}>
@@ -102,7 +103,7 @@ export default function ReviewsScreen({ route }) {
       </TouchableOpacity>
 
       <Text style={styles.sectionTitle}>Αξιολογήσεις ({reviews.length})</Text>
-      {loading ? <ActivityIndicator color="#1a73e8" /> : reviews.length === 0 ? <Text style={styles.empty}>Δεν υπάρχουν ακόμη αξιολογήσεις.</Text> : reviews.map((review, index) => (
+      {loading ? <ActivityIndicator color={COLORS.primary} /> : reviews.length === 0 ? <Text style={styles.empty}>Δεν υπάρχουν ακόμη αξιολογήσεις.</Text> : reviews.map((review, index) => (
         <View style={styles.review} key={review.id || `${review.userEmail}-${index}`}>
           <View style={styles.reviewHeader}>
             <Text style={styles.reviewUser}>{review.userEmail || 'Επισκέπτης'}</Text>
@@ -116,17 +117,17 @@ export default function ReviewsScreen({ route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  container: { flex: 1, backgroundColor: COLORS.background },
   content: { padding: 20, paddingBottom: 50 },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#1a73e8', marginBottom: 8 },
+  title: { fontSize: 24, fontWeight: '700', color: COLORS.primary, marginBottom: 8 },
   spotTitle: { fontSize: 18, fontWeight: '600', color: '#333', marginBottom: 22 },
   label: { fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 8 },
   starsRow: { flexDirection: 'row', marginBottom: 18 },
   star: { fontSize: 42, color: '#d5d5d5', marginRight: 6 },
   starSelected: { color: '#f5b301' },
   input: { minHeight: 110, backgroundColor: 'white', borderWidth: 1, borderColor: '#ddd', borderRadius: 10, padding: 14, textAlignVertical: 'top', fontSize: 16 },
-  button: { backgroundColor: '#1a73e8', padding: 16, borderRadius: 10, alignItems: 'center', marginTop: 14 },
+  button: { backgroundColor: COLORS.primary, padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 14 },
   disabled: { backgroundColor: '#999' },
   buttonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
   sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#333', marginTop: 30, marginBottom: 12 },

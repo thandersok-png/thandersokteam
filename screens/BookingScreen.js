@@ -15,17 +15,7 @@ import { createPaymentIntent } from '../utils/paymentService';
 import { PLATFORM_COMMISSION_PERCENT, STRIPE_API_URL } from '../stripe';
 import { useStripe } from '@stripe/stripe-react-native';
 import { registerForPushNotifications } from '../utils/notifications';
-
-const COLORS = {
-  primary: '#1a73e8',
-  secondary: '#4CAF50',
-  background: '#f5f5f5',
-  white: '#ffffff',
-  text: '#333333',
-  textLight: '#666666',
-  border: '#e0e0e0',
-  danger: '#e74c3c',
-};
+import COLORS from '../theme/colors';
 
 export default function BookingScreen({ route, navigation }) {
   const { spot } = route.params || { spot: { title: 'Θέση', price: '1.50' } };

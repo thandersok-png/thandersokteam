@@ -20,17 +20,7 @@ import {
   updateDoc,
 } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-
-const COLORS = {
-  primary: '#1a73e8',
-  secondary: '#4CAF50',
-  background: '#f5f5f5',
-  white: '#ffffff',
-  text: '#333333',
-  textLight: '#666666',
-  border: '#e0e0e0',
-  danger: '#e53935',
-};
+import COLORS from '../theme/colors';
 
 export default function MySpotsScreen({ navigation }) {
   const [spots, setSpots] = useState([]);
@@ -263,11 +253,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     padding: 15,
     marginBottom: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: '#101828',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
     elevation: 3,
   },
   title: {
