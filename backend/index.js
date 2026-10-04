@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const { sendPushNotification } = require('./notifications');
+require('dotenv').config(); // ← Διαβάζει το .env αρχείο
+
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // ← Παίρνει το κλειδί από το .env
 
 const app = express();
 app.use(cors());
@@ -107,103 +108,9 @@ app.post('/create-transfer', async (req, res) => {
 });
 
 // ==========================================
-// 4. Αποστολή Ειδοποιήσεων
+// 4. Εκκίνηση Server
 // ==========================================
-
-// Νέα Κράτηση (στον ιδιοκτήτη)
-app.post('/notify/new-booking', async (req, res) => {
-  try {
-    const { ownerToken, spotTitle, plateNumber } = req.body;
-
-    await sendPushNotification(
-      [ownerToken],
-      '🚗 Νέα Κράτηση!',
-      `Κάποιος έκλεισε τη θέση "${spotTitle}". Πινακίδα: ${plateNumber}`,
-      { type: 'new_booking' }
-    );
-
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Επιβεβαίωση Πληρωμής (στον οδηγό)
-app.post('/notify/payment-confirmed', async (req, res) => {
-  try {
-    const { driverToken, spotTitle, amount, spotCode } = req.body;
-
-    await sendPushNotification(
-      [driverToken],
-      '✅ Η πληρωμή πέρασε!',
-      `Πλήρωσες ${amount}€ για τη θέση "${spotTitle}". Κωδικός εισόδου: ${spotCode}`,
-      { type: 'payment_confirmed' }
-    );
-
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Μεταφορά Χρημάτων (στον ιδιοκτήτη)
-app.post('/notify/transfer-complete', async (req, res) => {
-  try {
-    const { ownerToken, amount, spotTitle } = req.body;
-
-    await sendPushNotification(
-      [ownerToken],
-      '💰 Πήρες χρήματα!',
-      `Η κράτηση στη θέση "${spotTitle}" ολοκληρώθηκε. Μεταφορά: ${amount}€`,
-      { type: 'transfer_complete' }
-    );
-
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Ακύρωση Κράτησης (στον ιδιοκτήτη)
-app.post('/notify/booking-cancelled', async (req, res) => {
-  try {
-    const { ownerToken, spotTitle } = req.body;
-
-    await sendPushNotification(
-      [ownerToken],
-      '❌ Ακυρώθηκε η κράτηση',
-      `Η κράτηση στη θέση "${spotTitle}" ακυρώθηκε.`,
-      { type: 'booking_cancelled' }
-    );
-
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Νέα Αξιολόγηση (στον ιδιοκτήτη)
-app.post('/notify/new-review', async (req, res) => {
-  try {
-    const { ownerToken, rating, comment } = req.body;
-
-    await sendPushNotification(
-      [ownerToken],
-      `⭐ Νέα αξιολόγηση: ${rating}/5`,
-      `Σχόλιο: "${comment || 'Χωρίς σχόλιο'}"`,
-      { type: 'new_review' }
-    );
-
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// ==========================================
-// 5. Εκκίνηση Server
-// ==========================================
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server τρέχει στο http://localhost:${PORT}`);
 });
