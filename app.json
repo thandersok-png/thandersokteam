@@ -11,7 +11,7 @@
       [
         "react-native-maps",
         {
-          "androidGoogleMapsApiKey": "AIzaSyCRLPpzNBNbWYVug4qhoo0cKNkENNNBho4"
+          "androidGoogleMapsApiKey": "AIzaSyCo2IK9bt_DKQ5aFq69h_9yA4c8EWG3Tds"
         }
       ],
       [
@@ -40,7 +40,7 @@
       "googleServicesFile": "./google-services.json",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyCRLPpzNBNbWYVug4qhoo0cKNkENNNBho4"
+          "apiKey": "AIzaSyCo2IK9bt_DKQ5aFq69h_9yA4c8EWG3Tds"
         }
       },
       "package": "com.parkshare.app",
