@@ -38,11 +38,6 @@
     },
     "android": {
       "googleServicesFile": "./google-services.json",
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyCo2IK9bt_DKQ5aFq69h_9yA4c8EWG3Tds"
-        }
-      },
       "package": "com.parkshare.app",
       "adaptiveIcon": {
         "foregroundImage": "./icon.png",
