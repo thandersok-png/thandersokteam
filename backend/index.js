@@ -1,13 +1,25 @@
 const express = require('express');
 const cors = require('cors');
-const admin = require('firebase-admin');
+const {
+  initializeApp,
+  getApps,
+  applicationDefault,
+  cert,
+} = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 require('dotenv').config();
 
-if (admin.apps.length === 0) {
-  admin.initializeApp();
+if (getApps().length === 0) {
+  const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+
+  initializeApp({
+    credential: serviceAccountJson
+      ? cert(JSON.parse(serviceAccountJson))
+      : applicationDefault(),
+  });
 }
 
-const db = admin.firestore();
+const db = getFirestore();
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
