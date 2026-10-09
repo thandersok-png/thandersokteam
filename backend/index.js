@@ -13,9 +13,10 @@ app.use(express.json());
 // ==========================================
 app.post('/create-payment-intent', async (req, res) => {
   try {
-    const { amount, currency } = req.body;
+    const { amount, currency, connectedAccountId } = req.body;
 
     console.log('📥 Λήφθηκε amount:', amount, '| τύπος:', typeof amount);
+    console.log('📥 Connected Account:', connectedAccountId || 'ΔΕΝ ΔΟΘΗΚΕ');
 
     const numericAmount = Number(amount);
 
@@ -24,11 +25,29 @@ app.post('/create-payment-intent', async (req, res) => {
       return res.status(400).json({ error: 'Invalid amount' });
     }
 
-    const paymentIntent = await stripe.paymentIntents.create({
+    // Υπολογισμός προμήθειας πλατφόρμας (10%)
+    const applicationFee = Math.round(numericAmount * 0.10);
+    console.log('💰 Προμήθεια πλατφόρμας (10%):', applicationFee, 'λεπτά');
+
+    // Δημιουργία PaymentIntent με προμήθεια
+    const paymentIntentParams = {
       amount: Math.round(numericAmount),
       currency: currency || 'eur',
       automatic_payment_methods: { enabled: true },
-    });
+      application_fee_amount: applicationFee,
+    };
+
+    // Αν έχουμε connected account, στέλνουμε τα χρήματα εκεί
+    if (connectedAccountId) {
+      paymentIntentParams.transfer_data = {
+        destination: connectedAccountId,
+      };
+      console.log('➡️ Transfer to:', connectedAccountId);
+    } else {
+      console.warn('⚠️ ΔΕΝ δόθηκε connectedAccountId - τα χρήματα μένουν στην πλατφόρμα');
+    }
+
+    const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
 
     console.log('✅ Payment Intent:', paymentIntent.id);
 

@@ -1,109 +1,173 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { useStripe } from '@stripe/stripe-react-native';
-import { doc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { httpsCallable, getFunctions } from 'firebase/functions';
-import { auth, db, app } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../firebase';
+import { API_URL } from '../stripe';
 import COLORS from '../theme/colors';
 
 export default function PaymentScreen({ route, navigation }) {
-  const { bookingId, amount, spotTitle } = route.params;
+  const { spot, hours, totalAmount } = route.params || {};
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [loading, setLoading] = useState(true);
-  const [ready, setReady] = useState(false);
-  const [error, setError] = useState('');
+  const [ownerAccountId, setOwnerAccountId] = useState(null);
 
   useEffect(() => {
-    let mounted = true;
+    fetchOwnerAccount();
+  }, []);
 
-    const preparePaymentSheet = async () => {
-      try {
-        const createPaymentIntent = httpsCallable(getFunctions(app), 'createPaymentIntent');
-        const result = await createPaymentIntent({ bookingId });
-        const { paymentIntentClientSecret } = result.data;
-        const { error: initError } = await initPaymentSheet({
-          merchantDisplayName: 'ParkShare',
-          paymentIntentClientSecret,
-          defaultBillingDetails: { email: auth.currentUser?.email || undefined },
-        });
-
-        if (initError) throw new Error(initError.message);
-        if (mounted) setReady(true);
-      } catch (paymentError) {
-        if (mounted) setError(paymentError.message || 'Δεν ήταν δυνατή η προετοιμασία της πληρωμής.');
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    preparePaymentSheet();
-    return () => {
-      mounted = false;
-    };
-  }, [bookingId, initPaymentSheet]);
-
-  const handlePayment = async () => {
-    setLoading(true);
-    setError('');
-
+  const fetchOwnerAccount = async () => {
     try {
-      const { error: paymentError } = await presentPaymentSheet();
-      if (paymentError) {
-        if (paymentError.code !== 'Canceled') setError(paymentError.message);
-        return;
-      }
+      // Παίρνουμε το Stripe Account ID του ιδιοκτήτη από τη Firebase
+      if (spot?.ownerId) {
+        const ownerRef = doc(db, 'users', spot.ownerId);
+        const ownerSnap = await getDoc(ownerRef);
 
-      await setDoc(doc(db, 'payments', bookingId), {
-        bookingId,
-        userId: auth.currentUser?.uid || null,
-        amount: Number(amount),
-        currency: 'eur',
-        status: 'succeeded',
-        createdAt: serverTimestamp(),
-      });
-      await updateDoc(doc(db, 'bookings', bookingId), { paid: true, paymentStatus: 'succeeded' });
-      Alert.alert('Η πληρωμή ολοκληρώθηκε', 'Η κράτησή σας επιβεβαιώθηκε.', [
-        { text: 'OK', onPress: () => navigation.navigate('Λίστα') },
-      ]);
-    } catch (paymentError) {
-      setError(paymentError.message || 'Δεν αποθηκεύτηκε η πληρωμή.');
+        if (ownerSnap.exists()) {
+          const ownerData = ownerSnap.data();
+          if (ownerData.stripeAccountId) {
+            console.log('✅ Owner Stripe Account:', ownerData.stripeAccountId);
+            setOwnerAccountId(ownerData.stripeAccountId);
+          } else {
+            console.warn('⚠️ Ο ιδιοκτήτης δεν έχει συνδέσει Stripe');
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Σφάλμα φόρτωσης ιδιοκτήτη:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const initializePaymentSheet = async () => {
+    try {
+      console.log('💰 Ποσό πληρωμής:', totalAmount, 'λεπτά');
+
+      // Στέλνουμε το connectedAccountId στο backend
+      const response = await fetch(`${API_URL}/create-payment-intent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: totalAmount,
+          currency: 'eur',
+          connectedAccountId: ownerAccountId, // ← ΣΗΜΑΝΤΙΚΟ!
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const { error } = await initPaymentSheet({
+        paymentIntentClientSecret: data.clientSecret,
+        merchantDisplayName: 'ParkShare',
+        allowsDelayedPaymentMethods: false,
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      console.log('✅ Payment sheet initialized');
+    } catch (error) {
+      console.error('❌ Σφάλμα αρχικοποίησης:', error);
+      Alert.alert('Σφάλμα', error.message || 'Δεν μπόρεσε να ξεκινήσει η πληρωμή.');
+      setLoading(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    try {
+      const { error } = await presentPaymentSheet();
+
+      if (error) {
+        if (error.code === 'Canceled') {
+          return;
+        }
+        Alert.alert('Σφάλμα Πληρωμής', error.message);
+        return;
+      }
+
+      Alert.alert(
+        '✅ Επιτυχία!',
+        'Η πληρωμή ολοκληρώθηκε. Αποθηκεύεται η κράτηση...',
+        [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('Χάρτης'),
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('❌ Σφάλμα πληρωμής:', error);
+      Alert.alert('Σφάλμα', 'Κάτι πήγε λάθος με την πληρωμή.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Φόρτωση...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Πληρωμή κράτησης</Text>
-      <Text style={styles.spot}>{spotTitle}</Text>
-      <View style={styles.amountCard}>
-        <Text style={styles.amountLabel}>Σύνολο</Text>
-        <Text style={styles.amount}>{Number(amount).toFixed(2)} €</Text>
+      <Text style={styles.header}>💳 Πληρωμή</Text>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>Θέση</Text>
+        <Text style={styles.value}>{spot?.title || 'Άγνωστη'}</Text>
+
+        <Text style={styles.label}>Ώρες</Text>
+        <Text style={styles.value}>{hours || '1'} ώρα(ες)</Text>
+
+        <Text style={styles.label}>Σύνολο</Text>
+        <Text style={styles.total}>{(totalAmount / 100).toFixed(2)} €</Text>
+
+        {ownerAccountId ? (
+          <Text style={styles.ownerInfo}>✅ Ιδιοκτήτης συνδεδεμένος</Text>
+        ) : (
+          <Text style={styles.ownerWarning}>
+            ⚠️ Ο ιδιοκτήτης δεν έχει συνδέσει Stripe
+          </Text>
+        )}
       </View>
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      {loading && !ready ? <ActivityIndicator size="large" color={COLORS.primary} /> : null}
+
       <TouchableOpacity
-        style={[styles.button, (!ready || loading) && styles.disabled]}
-        disabled={!ready || loading}
+        style={styles.payButton}
         onPress={handlePayment}
+        disabled={!ownerAccountId}
       >
-        <Text style={styles.buttonText}>{loading ? 'Προετοιμασία...' : 'Πληρωμή με Stripe'}</Text>
+        <Text style={styles.payButtonText}>💳 Πληρωμή {(totalAmount / 100).toFixed(2)} €</Text>
       </TouchableOpacity>
-      <Text style={styles.note}>Test mode: 4242 4242 4242 4242</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background, padding: 24, justifyContent: 'center' },
-  title: { fontSize: 28, fontWeight: 'bold', color: COLORS.text, textAlign: 'center' },
-  spot: { fontSize: 16, color: COLORS.muted, textAlign: 'center', marginTop: 8 },
-  amountCard: { backgroundColor: COLORS.white, padding: 24, marginVertical: 24, borderRadius: 12, alignItems: 'center' },
-  amountLabel: { fontSize: 16, color: COLORS.muted },
-  amount: { fontSize: 32, fontWeight: 'bold', color: COLORS.primary, marginTop: 6 },
-  button: { backgroundColor: COLORS.primary, padding: 17, borderRadius: 10, alignItems: 'center' },
-  buttonText: { color: COLORS.white, fontSize: 17, fontWeight: 'bold' },
-  disabled: { opacity: 0.5 },
-  error: { color: '#b71c1c', textAlign: 'center', marginBottom: 16 },
-  note: { color: COLORS.muted, textAlign: 'center', marginTop: 18 },
+  container: { flex: 1, backgroundColor: COLORS.background, padding: 20, paddingTop: 50 },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background },
+  loadingText: { marginTop: 10, color: COLORS.textLight, fontSize: 16 },
+  header: { fontSize: 28, fontWeight: 'bold', color: COLORS.primary, textAlign: 'center', marginBottom: 20 },
+  card: { backgroundColor: COLORS.white, padding: 20, borderRadius: 12, marginBottom: 20, elevation: 3 },
+  label: { fontSize: 14, fontWeight: '600', color: COLORS.textLight, marginTop: 10 },
+  value: { fontSize: 16, color: COLORS.text, marginTop: 4 },
+  total: { fontSize: 24, fontWeight: 'bold', color: COLORS.secondary, marginTop: 4 },
+  ownerInfo: { marginTop: 12, color: '#4CAF50', fontSize: 13, fontStyle: 'italic' },
+  ownerWarning: { marginTop: 12, color: '#FF9800', fontSize: 13, fontStyle: 'italic' },
+  payButton: { backgroundColor: COLORS.primary, padding: 18, borderRadius: 12, alignItems: 'center', elevation: 3 },
+  payButtonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 18 },
 });
