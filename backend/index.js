@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config(); // ← Διαβάζει το .env αρχείο
+require('dotenv').config();
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY); // ← Παίρνει το κλειδί από το .env
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 app.use(cors());
@@ -14,40 +14,32 @@ app.use(express.json());
 app.post('/create-payment-intent', async (req, res) => {
   try {
     const { amount, currency, connectedAccountId } = req.body;
-
-    console.log('📥 Λήφθηκε amount:', amount, '| τύπος:', typeof amount);
-    console.log('📥 Connected Account:', connectedAccountId || 'ΔΕΝ ΔΟΘΗΚΕ');
-
     const numericAmount = Number(amount);
 
-    if (!numericAmount || isNaN(numericAmount)) {
-      console.error('❌ Μη έγκυρο amount:', amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
       return res.status(400).json({ error: 'Invalid amount' });
     }
 
-    // Υπολογισμός προμήθειας πλατφόρμας (10%)
-    const applicationFee = Math.round(numericAmount * 0.10);
-    console.log('💰 Προμήθεια πλατφόρμας (10%):', applicationFee, 'λεπτά');
+    if (
+      typeof connectedAccountId !== 'string' ||
+      connectedAccountId.trim() === ''
+    ) {
+      return res.status(400).json({ error: 'Missing connectedAccountId' });
+    }
 
-    // Δημιουργία PaymentIntent με προμήθεια
-    const paymentIntentParams = {
-      amount: Math.round(numericAmount),
+    // Τα ποσά είναι σε λεπτά (smallest currency unit).
+    const paymentAmount = Math.round(numericAmount);
+    const applicationFee = Math.round(paymentAmount * 0.10);
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: paymentAmount,
       currency: currency || 'eur',
       automatic_payment_methods: { enabled: true },
       application_fee_amount: applicationFee,
-    };
-
-    // Αν έχουμε connected account, στέλνουμε τα χρήματα εκεί
-    if (connectedAccountId) {
-      paymentIntentParams.transfer_data = {
+      transfer_data: {
         destination: connectedAccountId,
-      };
-      console.log('➡️ Transfer to:', connectedAccountId);
-    } else {
-      console.warn('⚠️ ΔΕΝ δόθηκε connectedAccountId - τα χρήματα μένουν στην πλατφόρμα');
-    }
-
-    const paymentIntent = await stripe.paymentIntents.create(paymentIntentParams);
+      },
+    });
 
     console.log('✅ Payment Intent:', paymentIntent.id);
 
@@ -104,10 +96,9 @@ app.post('/create-connected-account', async (req, res) => {
 app.post('/create-transfer', async (req, res) => {
   try {
     const { amount, accountId } = req.body;
-
     const numericAmount = Number(amount);
 
-    if (!numericAmount || isNaN(numericAmount)) {
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
       return res.status(400).json({ error: 'Invalid amount' });
     }
 
@@ -130,6 +121,7 @@ app.post('/create-transfer', async (req, res) => {
 // 4. Εκκίνηση Server
 // ==========================================
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`🚀 Server τρέχει στο http://localhost:${PORT}`);
 });
