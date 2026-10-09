@@ -237,7 +237,7 @@ export default function ListScreen({ navigation }) {
       return;
     }
 
-    navigation.navigate('Κράτηση', { spot });
+    navigation.navigate('Κράτηση', { spot, spotId: spot.id });
   };
 
   const openNavigation = (spot) => {

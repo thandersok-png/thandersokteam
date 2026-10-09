@@ -10,7 +10,12 @@ export const createPaymentIntent = async (amountInCents, spotId, currency = 'eur
     throw new Error('Λείπει το ID της θέσης για τη δημιουργία πληρωμής.');
   }
 
-  console.log('📤 Στέλνω amount:', amountInCents, '| τύπος:', typeof amountInCents);
+  const numericAmount = Number(amountInCents);
+  if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+    throw new Error('Το ποσό πληρωμής δεν είναι έγκυρο.');
+  }
+
+  console.log('📤 Στέλνω amount:', numericAmount, '| τύπος:', typeof numericAmount);
 
   try {
     const response = await fetch(`${API_URL}/create-payment-intent`, {
@@ -19,7 +24,7 @@ export const createPaymentIntent = async (amountInCents, spotId, currency = 'eur
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        amount: amountInCents,
+        amount: numericAmount,
         currency: currency,
         spotId: normalizedSpotId,
       }),

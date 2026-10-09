@@ -9,82 +9,83 @@ import {
 } from 'react-native';
 import { useStripe } from '@stripe/stripe-react-native';
 import { doc, getDoc } from 'firebase/firestore';
-import { db, auth } from '../firebase';
-import { API_URL } from '../stripe';
+import { db } from '../firebase';
+import { createPaymentIntent } from '../utils/paymentService';
 import COLORS from '../theme/colors';
 
 export default function PaymentScreen({ route, navigation }) {
-  const { spot, hours, totalAmount } = route.params || {};
+  const routeParams = route.params || {};
+  const { spot, hours, totalAmount } = routeParams;
+  const routeSpotId =
+    typeof routeParams.spotId === 'string' ? routeParams.spotId.trim() : '';
+  const spotId = routeSpotId || (typeof spot?.id === 'string' ? spot.id.trim() : '');
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [loading, setLoading] = useState(true);
   const [ownerAccountId, setOwnerAccountId] = useState(null);
+  const [paymentReady, setPaymentReady] = useState(false);
 
   useEffect(() => {
-    fetchOwnerAccount();
-  }, []);
+    let mounted = true;
 
-  const fetchOwnerAccount = async () => {
-    try {
-      // Παίρνουμε το Stripe Account ID του ιδιοκτήτη από τη Firebase
-      if (spot?.ownerId) {
-        const ownerRef = doc(db, 'users', spot.ownerId);
-        const ownerSnap = await getDoc(ownerRef);
+    const initializePayment = async () => {
+      try {
+        if (spot?.ownerId) {
+          const ownerRef = doc(db, 'users', spot.ownerId);
+          const ownerSnap = await getDoc(ownerRef);
 
-        if (ownerSnap.exists()) {
-          const ownerData = ownerSnap.data();
-          if (ownerData.stripeAccountId) {
-            console.log('✅ Owner Stripe Account:', ownerData.stripeAccountId);
-            setOwnerAccountId(ownerData.stripeAccountId);
-          } else {
-            console.warn('⚠️ Ο ιδιοκτήτης δεν έχει συνδέσει Stripe');
+          if (ownerSnap.exists()) {
+            const stripeAccountId = ownerSnap.data().stripeAccountId;
+            if (stripeAccountId) {
+              console.log('✅ Owner Stripe Account:', stripeAccountId);
+              if (mounted) setOwnerAccountId(stripeAccountId);
+            } else {
+              console.warn('⚠️ Ο ιδιοκτήτης δεν έχει συνδέσει Stripe');
+            }
           }
         }
+
+        if (!spotId) {
+          throw new Error('Δεν βρέθηκε το ID της θέσης για τη δημιουργία πληρωμής.');
+        }
+
+        if (!Number.isFinite(Number(totalAmount)) || Number(totalAmount) <= 0) {
+          throw new Error('Το ποσό πληρωμής δεν είναι έγκυρο.');
+        }
+
+        console.log('💰 Ποσό πληρωμής:', totalAmount, 'λεπτά');
+        const paymentIntent = await createPaymentIntent(totalAmount, spotId);
+        if (!paymentIntent.clientSecret) {
+          throw new Error('Δεν δημιουργήθηκε το payment intent.');
+        }
+
+        const { error } = await initPaymentSheet({
+          paymentIntentClientSecret: paymentIntent.clientSecret,
+          merchantDisplayName: 'ParkShare',
+          allowsDelayedPaymentMethods: false,
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (mounted) setPaymentReady(true);
+        console.log('✅ Payment sheet initialized');
+      } catch (error) {
+        console.error('❌ Σφάλμα αρχικοποίησης:', error);
+        if (mounted) {
+          Alert.alert('Σφάλμα', error.message || 'Δεν μπόρεσε να ξεκινήσει η πληρωμή.');
+        }
+      } finally {
+        if (mounted) setLoading(false);
       }
-    } catch (error) {
-      console.error('❌ Σφάλμα φόρτωσης ιδιοκτήτη:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const initializePaymentSheet = async () => {
-    try {
-      console.log('💰 Ποσό πληρωμής:', totalAmount, 'λεπτά');
+    initializePayment();
 
-      // Στέλνουμε το spotId στο backend για να βρεθεί ο λογαριασμός Stripe.
-      const response = await fetch(`${API_URL}/create-payment-intent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: totalAmount,
-          currency: 'eur',
-          spotId: route.params?.spot?.id,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      const { error } = await initPaymentSheet({
-        paymentIntentClientSecret: data.clientSecret,
-        merchantDisplayName: 'ParkShare',
-        allowsDelayedPaymentMethods: false,
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      console.log('✅ Payment sheet initialized');
-    } catch (error) {
-      console.error('❌ Σφάλμα αρχικοποίησης:', error);
-      Alert.alert('Σφάλμα', error.message || 'Δεν μπόρεσε να ξεκινήσει η πληρωμή.');
-      setLoading(false);
-    }
-  };
+    return () => {
+      mounted = false;
+    };
+  }, [initPaymentSheet, spot?.ownerId, spotId, totalAmount]);
 
   const handlePayment = async () => {
     try {
@@ -149,7 +150,7 @@ export default function PaymentScreen({ route, navigation }) {
       <TouchableOpacity
         style={styles.payButton}
         onPress={handlePayment}
-        disabled={!ownerAccountId}
+        disabled={!ownerAccountId || !paymentReady}
       >
         <Text style={styles.payButtonText}>💳 Πληρωμή {(totalAmount / 100).toFixed(2)} €</Text>
       </TouchableOpacity>

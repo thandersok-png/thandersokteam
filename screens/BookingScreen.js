@@ -18,7 +18,8 @@ import { registerForPushNotifications } from '../utils/notifications';
 import COLORS from '../theme/colors';
 
 export default function BookingScreen({ route, navigation }) {
-  const { spot } = route.params || { spot: { title: 'Θέση', price: '1.50' } };
+  const routeParams = route.params || {};
+  const spot = routeParams.spot || { title: 'Θέση', price: '1.50' };
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -95,7 +96,10 @@ export default function BookingScreen({ route, navigation }) {
       return;
     }
 
-    const spotId = typeof spot?.id === 'string' ? spot.id.trim() : '';
+    const routeSpotId =
+      typeof routeParams.spotId === 'string' ? routeParams.spotId.trim() : '';
+    const spotId =
+      routeSpotId || (typeof spot?.id === 'string' ? spot.id.trim() : '');
     if (!spotId) {
       Alert.alert('Σφάλμα', 'Δεν βρέθηκε το ID της θέσης. Επιλέξτε ξανά τη θέση.');
       return;

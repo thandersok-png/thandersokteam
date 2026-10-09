@@ -197,7 +197,7 @@ export default function MapScreen({ navigation }) {
       Alert.alert('🔴 Κλεισμένη Θέση', 'Αυτή η θέση είναι ήδη κλεισμένη για σήμερα.');
       return;
     }
-    navigation.navigate('Κράτηση', { spot });
+    navigation.navigate('Κράτηση', { spot, spotId: spot.id });
   };
 
   const defaultRegion = {
