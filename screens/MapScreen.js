@@ -102,7 +102,7 @@ export default function MapScreen({ navigation }) {
         const querySnapshot = await getDocs(q);
         const data = [];
         querySnapshot.forEach((doc) => {
-          data.push({ id: doc.id, ...doc.data() });
+          data.push({ ...doc.data(), id: doc.id });
         });
         setSpots(data);
       } catch (error) {

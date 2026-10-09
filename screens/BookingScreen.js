@@ -95,6 +95,12 @@ export default function BookingScreen({ route, navigation }) {
       return;
     }
 
+    const spotId = typeof spot?.id === 'string' ? spot.id.trim() : '';
+    if (!spotId) {
+      Alert.alert('Σφάλμα', 'Δεν βρέθηκε το ID της θέσης. Επιλέξτε ξανά τη θέση.');
+      return;
+    }
+
     console.log('💰 spot.price:', pricePerHour);
     console.log('⏱️ hours:', hourValue);
     console.log('💵 totalPrice:', totalPrice);
@@ -104,7 +110,7 @@ export default function BookingScreen({ route, navigation }) {
 
     try {
       // 1. Δημιουργία Payment Intent
-      const paymentIntent = await createPaymentIntent(totalPriceInCents);
+      const paymentIntent = await createPaymentIntent(totalPriceInCents, spotId);
 
       if (!paymentIntent.clientSecret) {
         throw new Error('Δεν δημιουργήθηκε το payment intent');
@@ -139,7 +145,7 @@ export default function BookingScreen({ route, navigation }) {
       // 4. Αποθήκευση κράτησης στο Firestore
       const user = auth.currentUser;
       const booking = {
-        spotId: spot.id,
+        spotId,
         spotTitle: spot.title,
         userId: user?.uid || 'demo_user',
         userEmail: user?.email || 'demo@test.com',

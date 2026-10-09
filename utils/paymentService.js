@@ -3,7 +3,13 @@ import { API_URL } from '../stripe';
 // ==========================================
 // 1. Δημιουργία Payment Intent
 // ==========================================
-export const createPaymentIntent = async (amountInCents, currency = 'eur') => {
+export const createPaymentIntent = async (amountInCents, spotId, currency = 'eur') => {
+  const normalizedSpotId = typeof spotId === 'string' ? spotId.trim() : '';
+
+  if (!normalizedSpotId) {
+    throw new Error('Λείπει το ID της θέσης για τη δημιουργία πληρωμής.');
+  }
+
   console.log('📤 Στέλνω amount:', amountInCents, '| τύπος:', typeof amountInCents);
 
   try {
@@ -15,6 +21,7 @@ export const createPaymentIntent = async (amountInCents, currency = 'eur') => {
       body: JSON.stringify({
         amount: amountInCents,
         currency: currency,
+        spotId: normalizedSpotId,
       }),
     });
 
