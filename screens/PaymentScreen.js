@@ -51,14 +51,14 @@ export default function PaymentScreen({ route, navigation }) {
     try {
       console.log('💰 Ποσό πληρωμής:', totalAmount, 'λεπτά');
 
-      // Στέλνουμε το connectedAccountId στο backend
+      // Στέλνουμε το spotId στο backend για να βρεθεί ο λογαριασμός Stripe.
       const response = await fetch(`${API_URL}/create-payment-intent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: totalAmount,
           currency: 'eur',
-          connectedAccountId: ownerAccountId, // ← ΣΗΜΑΝΤΙΚΟ!
+          spotId: route.params?.spot?.id,
         }),
       });
 
