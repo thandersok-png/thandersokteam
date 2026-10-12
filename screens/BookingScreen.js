@@ -23,7 +23,7 @@ export default function BookingScreen({ route, navigation }) {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [hours, setHours] = useState('1');
+  const [hours, setHours] = useState('2');
   const [plateNumber, setPlateNumber] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +31,9 @@ export default function BookingScreen({ route, navigation }) {
 
   // Υπολογισμός τιμών
   const pricePerHour = parseFloat(spot?.price) || 1.5;
-  const hourValue = Math.max(1, parseInt(hours || '1', 10) || 1);
+  const parsedHours = Number(hours);
+  const isHoursValid = Number.isInteger(parsedHours) && parsedHours >= 2;
+  const hourValue = isHoursValid ? parsedHours : 2;
   const totalPrice = pricePerHour * hourValue;
   const totalPriceInCents = Math.round(totalPrice * 100);
   const commissionInCents = Math.round(totalPriceInCents * (PLATFORM_COMMISSION_PERCENT / 100));
@@ -91,6 +93,11 @@ export default function BookingScreen({ route, navigation }) {
   };
 
   const handleBooking = async () => {
+    if (!isHoursValid) {
+      Alert.alert('Σφάλμα', 'Η ελάχιστη διάρκεια κράτησης είναι 2 ώρες.');
+      return;
+    }
+
     if (!plateNumber.trim()) {
       Alert.alert('Σφάλμα', 'Συμπληρώστε τον αριθμό κυκλοφορίας.');
       return;
@@ -252,6 +259,11 @@ export default function BookingScreen({ route, navigation }) {
         onChangeText={setHours}
         placeholder="π.χ. 2"
       />
+      {!isHoursValid && (
+        <Text style={styles.validationText}>
+          Η ελάχιστη διάρκεια κράτησης είναι 2 ώρες.
+        </Text>
+      )}
 
       <Text style={styles.label}>🚗 Αριθμός κυκλοφορίας *</Text>
       <TextInput
@@ -286,9 +298,13 @@ export default function BookingScreen({ route, navigation }) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.button, styles.bookButton, loading && styles.disabled]}
+          style={[
+            styles.button,
+            styles.bookButton,
+            (loading || !isHoursValid) && styles.disabled,
+          ]}
           onPress={handleBooking}
-          disabled={loading}
+          disabled={loading || !isHoursValid}
         >
           <Text style={styles.bookButtonText}>
             {loading ? '⏳ Πληρωμή...' : '💳 Πληρωμή με Stripe'}
@@ -311,6 +327,7 @@ const styles = StyleSheet.create({
   dateButton: { backgroundColor: COLORS.white, padding: 14, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border },
   dateButtonText: { fontSize: 16, color: COLORS.text },
   input: { backgroundColor: COLORS.white, padding: 14, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border, fontSize: 16 },
+  validationText: { color: '#c62828', fontSize: 14, marginTop: 6 },
   totalCard: { backgroundColor: '#e8f0fe', padding: 20, borderRadius: 12, marginTop: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   totalCardSecondary: { backgroundColor: COLORS.white, padding: 18, borderRadius: 12, marginTop: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: COLORS.border },
   totalLabel: { fontSize: 18, fontWeight: 'bold', color: COLORS.text },

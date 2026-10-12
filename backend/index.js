@@ -83,7 +83,7 @@ app.post('/create-payment-intent', async (req, res) => {
 
     // Τα ποσά είναι σε λεπτά.
     const paymentAmount = Math.round(numericAmount);
-    const applicationFee = Math.round(paymentAmount * 0.10);
+    const applicationFee = Math.round(paymentAmount * 0.20);
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: paymentAmount,

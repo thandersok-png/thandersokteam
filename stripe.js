@@ -7,5 +7,5 @@ export const API_URL = 'https://parkshare-backend-oqvr.onrender.com';
 // Η χώρα
 export const STRIPE_COUNTRY = 'GR';
 
-// Η προμήθεια της πλατφόρμας (10%)
-export const PLATFORM_COMMISSION_PERCENT = 10;
+// Η προμήθεια της πλατφόρμας (20%)
+export const PLATFORM_COMMISSION_PERCENT = 20;

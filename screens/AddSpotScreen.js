@@ -57,6 +57,12 @@ export default function AddSpotScreen({ navigation }) {
       return;
     }
 
+    const numericPrice = Number(price.trim());
+    if (!Number.isFinite(numericPrice) || numericPrice < 2) {
+      setMessage('Η ελάχιστη τιμή είναι 2,00 € ανά ώρα.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -67,7 +73,7 @@ export default function AddSpotScreen({ navigation }) {
         title: title.trim(),
         spotCode: spotCode.toUpperCase().trim(),
         address: address.trim(),
-        price: parseFloat(price) || 0,
+        price: numericPrice,
         available: '09:00 - 17:00',
         latitude: cityCoords.latitude,
         longitude: cityCoords.longitude,
@@ -121,7 +127,7 @@ export default function AddSpotScreen({ navigation }) {
       <Text style={styles.label}>Τιμή (€/ώρα) *</Text>
       <TextInput
         style={styles.input}
-        placeholder="π.χ. 1.50"
+        placeholder="π.χ. 2.00"
         keyboardType="numeric"
         value={price}
         onChangeText={setPrice}

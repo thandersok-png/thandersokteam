@@ -116,7 +116,7 @@ export default function OwnerStripeSetupScreen({ navigation }) {
         <Text style={styles.infoItem}>1. Ο οδηγός πληρώνει στην εφαρμογή</Text>
         <Text style={styles.infoItem}>2. Η Stripe κρατά τα χρήματα</Text>
         <Text style={styles.infoItem}>3. Η Stripe μεταφέρει το ποσό στον ιδιοκτήτη</Text>
-        <Text style={styles.infoItem}>4. Η πλατφόρμα κρατά προμήθεια 10%</Text>
+        <Text style={styles.infoItem}>4. Η πλατφόρμα κρατά προμήθεια 20%</Text>
       </View>
 
       <Text style={styles.description}>

@@ -153,6 +153,12 @@ export default function MapScreen({ navigation }) {
       return;
     }
 
+    const numericPrice = Number(newSpotPrice.trim());
+    if (!Number.isFinite(numericPrice) || numericPrice < 2) {
+      Alert.alert('Σφάλμα', 'Η ελάχιστη τιμή είναι 2,00 € ανά ώρα.');
+      return;
+    }
+
     setAddingSpot(true);
 
     try {
@@ -161,7 +167,7 @@ export default function MapScreen({ navigation }) {
         title: newSpotTitle.trim(),
         spotCode: newSpotCode.toUpperCase().trim(),
         address: newSpotAddress.trim() || `Θέση στον χάρτη, ${selectedCity}`,
-        price: parseFloat(newSpotPrice) || 0,
+        price: numericPrice,
         available: newSpotAvailable || '09:00 - 17:00',
         latitude: selectedCoordinates.latitude,
         longitude: selectedCoordinates.longitude,
@@ -348,7 +354,7 @@ export default function MapScreen({ navigation }) {
               <Text style={styles.label}>Τιμή (€/ώρα) *</Text>
               <TextInput
                 style={styles.input}
-                placeholder="π.χ. 1.50"
+                placeholder="π.χ. 2.00"
                 keyboardType="numeric"
                 value={newSpotPrice}
                 onChangeText={setNewSpotPrice}
