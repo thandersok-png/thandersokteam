@@ -18,6 +18,7 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     const normalizedEmail = email.trim().toLowerCase();
@@ -63,6 +64,7 @@ export default function LoginScreen({ navigation }) {
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
+          autoCorrect={false}
           autoComplete="off"
           textContentType="none"
           importantForAutofill="no"
@@ -70,16 +72,28 @@ export default function LoginScreen({ navigation }) {
         />
 
         <Text style={styles.label}>Κωδικός</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="••••••••"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoComplete="off"
-          textContentType="none"
-          importantForAutofill="no"
-        />
+        <View style={styles.passwordContainer} importantForAutofill="no">
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="••••••••"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            autoComplete="off"
+            textContentType="none"
+            importantForAutofill="no"
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
+          <TouchableOpacity
+            style={styles.eyeButton}
+            onPress={() => setShowPassword((previous) => !previous)}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? 'Απόκρυψη κωδικού' : 'Εμφάνιση κωδικού'}
+          >
+            <Text style={styles.eyeText}>{showPassword ? '🙈' : '👁️'}</Text>
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -114,6 +128,10 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 16, color: COLORS.textLight, textAlign: 'center', marginBottom: 40 },
   label: { fontSize: 16, fontWeight: '600', color: COLORS.text, marginBottom: 6 },
   input: { backgroundColor: COLORS.white, borderRadius: 10, padding: 14, fontSize: 16, borderWidth: 1, borderColor: COLORS.border, marginBottom: 16 },
+  passwordContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border, marginBottom: 16 },
+  passwordInput: { flex: 1, backgroundColor: COLORS.white, padding: 14, fontSize: 16, color: COLORS.text },
+  eyeButton: { paddingHorizontal: 14 },
+  eyeText: { fontSize: 18 },
   button: { backgroundColor: COLORS.primary, padding: 16, borderRadius: 12, alignItems: 'center' },
   buttonDisabled: { backgroundColor: '#999' },
   buttonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 18 },

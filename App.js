@@ -1,162 +1,186 @@
-import React, { useState, useEffect } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Ionicons } from '@expo/vector-icons';
-import { StripeProvider } from '@stripe/stripe-react-native';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from './firebase';
-import { STRIPE_PUBLISHABLE_KEY } from './stripe';
-import COLORS from './theme/colors';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
+import COLORS from '../theme/colors';
 
-import LoginScreen from './screens/LoginScreen';
-import RegisterScreen from './screens/RegisterScreen';
-import ListScreen from './screens/ListScreen';
-import MapScreen from './screens/MapScreen';
-import AddSpotScreen from './screens/AddSpotScreen';
-import BookingScreen from './screens/BookingScreen';
-import PaymentScreen from './screens/PaymentScreen';
-import ProfileScreen from './screens/ProfileScreen';
-import MySpotsScreen from './screens/MySpotsScreen';
-import ReviewsScreen from './screens/ReviewsScreen';
-import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
-import QRCodeScreen from './screens/QRCodeScreen';
-import QRScannerScreen from './screens/QRScannerScreen';
-import OwnerStripeSetupScreen from './screens/OwnerStripeSetupScreen';
-import NotificationsScreen from './screens/NotificationsScreen';
+export default function LoginScreen({ navigation }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-const Drawer = createDrawerNavigator();
-const Stack = createNativeStackNavigator();
+  const handleLogin = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) {
+      Alert.alert('Σφάλμα', 'Συμπληρώστε email και κωδικό.');
+      return;
+    }
 
-function MainDrawer() {
-  return (
-    <Drawer.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: COLORS.surface },
-        headerTitleStyle: { color: COLORS.text, fontSize: 18, fontWeight: '700' },
-        headerTintColor: COLORS.primary,
-        headerShadowVisible: false,
-        sceneContainerStyle: { backgroundColor: COLORS.background },
-        drawerStyle: { backgroundColor: COLORS.surface, width: 300 },
-        drawerActiveTintColor: COLORS.primary,
-        drawerInactiveTintColor: COLORS.textLight,
-        drawerActiveBackgroundColor: COLORS.surfaceTint,
-        drawerItemStyle: { borderRadius: 12, marginHorizontal: 10, marginVertical: 3 },
-        drawerLabelStyle: { fontSize: 15, fontWeight: '600' },
-      }}
-    >
-      <Drawer.Screen
-        name="Λίστα"
-        component={ListScreen}
-        options={{
-          title: 'ParkShare',
-          drawerIcon: ({ color, size }) => <Ionicons name="list" size={size} color={color} />,
-        }}
-      />
-      <Drawer.Screen
-        name="Χάρτης"
-        component={MapScreen}
-        options={{
-          title: 'Χάρτης',
-          drawerIcon: ({ color, size }) => <Ionicons name="map" size={size} color={color} />,
-        }}
-      />
-      <Drawer.Screen
-        name="Προσθήκη"
-        component={AddSpotScreen}
-        options={{
-          title: 'Προσθήκη Θέσης',
-          drawerIcon: ({ color, size }) => <Ionicons name="add-circle" size={size} color={color} />,
-        }}
-      />
-      <Drawer.Screen
-        name="Οι Θέσεις μου"
-        component={MySpotsScreen}
-        options={{
-          title: 'Οι Θέσεις μου',
-          drawerIcon: ({ color, size }) => <Ionicons name="car" size={size} color={color} />,
-        }}
-      />
-      <Drawer.Screen
-        name="Ειδοποιήσεις"
-        component={NotificationsScreen}
-        options={{
-          title: 'Ειδοποιήσεις',
-          drawerIcon: ({ color, size }) => <Ionicons name="notifications" size={size} color={color} />,
-        }}
-      />
-      <Drawer.Screen
-        name="Προφίλ"
-        component={ProfileScreen}
-        options={{
-          title: 'Προφίλ',
-          drawerIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
-        }}
-      />
-      <Drawer.Screen
-        name="Σάρωση QR"
-        component={QRScannerScreen}
-        options={{
-          title: 'Check-in με QR',
-          drawerIcon: ({ color, size }) => <Ionicons name="qr-code" size={size} color={color} />,
-        }}
-      />
-      <Drawer.Screen
-        name="Stripe Setup"
-        component={OwnerStripeSetupScreen}
-        options={{
-          title: 'Σύνδεση Stripe',
-          drawerIcon: ({ color, size }) => <Ionicons name="card" size={size} color={color} />,
-        }}
-      />
-    </Drawer.Navigator>
-  );
-}
-
-function AuthStack() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} options={{ headerShown: true, title: 'Πολιτική Απορρήτου' }} />
-    </Stack.Navigator>
-  );
-}
-
-export default function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    setLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, normalizedEmail, password);
+    } catch (error) {
+      console.error('❌ Σφάλμα σύνδεσης:', error);
+      let message = 'Παρουσιάστηκε σφάλμα.';
+      if (error.code === 'auth/user-not-found') {
+        message = 'Δεν βρέθηκε χρήστης με αυτό το email.';
+      } else if (error.code === 'auth/wrong-password') {
+        message = 'Λάθος κωδικός.';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Μη έγκυρο email.';
+      } else if (error.code === 'auth/invalid-credential') {
+        message = 'Λάθος email ή κωδικός.';
+      }
+      Alert.alert('Σφάλμα', message);
+    } finally {
       setLoading(false);
-    });
-
-    return unsubscribe;
-  }, []);
-
-  if (loading) return null;
+    }
+  };
 
   return (
-    <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName={user ? 'Main' : 'Auth'}>
-          {user ? (
-            <>
-              <Stack.Screen name="Main" component={MainDrawer} options={{ headerShown: false }} />
-              <Stack.Screen name="Κράτηση" component={BookingScreen} options={{ title: 'Κράτηση' }} />
-              <Stack.Screen name="Payment" component={PaymentScreen} options={{ title: 'Πληρωμή' }} />
-              <Stack.Screen name="OwnerStripeSetup" component={OwnerStripeSetupScreen} options={{ title: 'Σύνδεση Stripe' }} />
-              <Stack.Screen name="Reviews" component={ReviewsScreen} options={{ title: 'Αξιολογήσεις' }} />
-              <Stack.Screen name="QRCode" component={QRCodeScreen} options={{ title: 'QR Check-in' }} />
-              <Stack.Screen name="QRScanner" component={QRScannerScreen} options={{ title: 'Σάρωση QR' }} />
-            </>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.innerContainer}>
+        <Text style={styles.title}>🚗 ParkShare</Text>
+        <Text style={styles.subtitle}>Συνδεθείτε για να συνεχίσετε</Text>
+
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="email@example.com"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="off"
+          textContentType="none"
+          importantForAutofill="no"
+          keyboardType="email-address"
+        />
+
+        <Text style={styles.label}>Κωδικός</Text>
+        <View style={styles.passwordContainer} importantForAutofill="no">
+          <TextInput
+            style={styles.passwordInput}
+            placeholder="••••••••"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            autoComplete="off"
+            textContentType="none"
+            importantForAutofill="no"
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
+          <TouchableOpacity
+            style={styles.eyeButton}
+            onPress={() => setShowPassword((previous) => !previous)}
+            accessibilityRole="button"
+            accessibilityLabel={
+              showPassword ? 'Απόκρυψη κωδικού' : 'Εμφάνιση κωδικού'
+            }
+          >
+            <Text style={styles.eyeText}>{showPassword ? '🙈' : '👁️'}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="white" />
           ) : (
-            <Stack.Screen name="Auth" component={AuthStack} options={{ headerShown: false }} />
+            <Text style={styles.buttonText}>Σύνδεση</Text>
           )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </StripeProvider>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.registerLink}
+          onPress={() => navigation.navigate('Register')}
+        >
+          <Text style={styles.registerText}>
+            Δεν έχετε λογαριασμό;{' '}
+            <Text style={styles.registerBold}>Εγγραφή</Text>
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.background },
+  innerContainer: { flex: 1, justifyContent: 'center', padding: 30 },
+  title: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: COLORS.textLight,
+    textAlign: 'center',
+    marginBottom: 40,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 6,
+  },
+  input: {
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 16,
+  },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 16,
+  },
+  passwordInput: {
+    flex: 1,
+    backgroundColor: COLORS.white,
+    padding: 14,
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  eyeButton: { paddingHorizontal: 14 },
+  eyeText: { fontSize: 18 },
+  button: {
+    backgroundColor: COLORS.primary,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  buttonDisabled: { backgroundColor: '#999' },
+  buttonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 18 },
+  registerLink: { marginTop: 20, alignItems: 'center' },
+  registerText: { fontSize: 16, color: COLORS.textLight },
+  registerBold: { color: COLORS.primary, fontWeight: 'bold' },
+});

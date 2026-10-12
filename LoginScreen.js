@@ -74,7 +74,7 @@ export default function LoginScreen({ navigation }) {
         />
 
         <Text style={styles.label}>Κωδικός</Text>
-        <View style={styles.passwordContainer}>
+        <View style={styles.passwordContainer} importantForAutofill="no">
           <TextInput
             style={styles.passwordInput}
             placeholder="••••••••"
