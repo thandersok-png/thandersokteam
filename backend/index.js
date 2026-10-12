@@ -110,6 +110,10 @@ app.post('/create-payment-intent', async (req, res) => {
 // ==========================================
 // 2. Δημιουργία Connected Account
 // ==========================================
+app.get('/reauth', (req, res) => {
+  return res.redirect('parkshare://');
+});
+
 app.post('/create-connected-account', async (req, res) => {
   try {
     const { email } = req.body;
