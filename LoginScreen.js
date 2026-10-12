@@ -67,6 +67,9 @@ export default function LoginScreen({ navigation }) {
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
+          autoComplete="off"
+          textContentType="none"
+          importantForAutofill="no"
           editable={!loading}
         />
 
@@ -80,6 +83,9 @@ export default function LoginScreen({ navigation }) {
             secureTextEntry={!showPassword}
             autoCapitalize="none"
             autoCorrect={false}
+            autoComplete="off"
+            textContentType="none"
+            importantForAutofill="no"
             editable={!loading}
           />
           <TouchableOpacity
@@ -165,6 +171,7 @@ const styles = StyleSheet.create({
   },
   passwordInput: {
     flex: 1,
+    backgroundColor: COLORS.white,
     padding: 14,
     fontSize: 16,
     color: COLORS.text,

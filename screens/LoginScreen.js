@@ -63,6 +63,9 @@ export default function LoginScreen({ navigation }) {
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
+          autoComplete="off"
+          textContentType="none"
+          importantForAutofill="no"
           keyboardType="email-address"
         />
 
@@ -73,6 +76,9 @@ export default function LoginScreen({ navigation }) {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          autoComplete="off"
+          textContentType="none"
+          importantForAutofill="no"
         />
 
         <TouchableOpacity
