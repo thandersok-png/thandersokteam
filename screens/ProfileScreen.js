@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { auth, signOut } from '../firebase';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
 import COLORS from '../theme/colors';
 
-export default function ProfileScreen({ navigation }) {
+export default function ProfileScreen() {
   const user = auth.currentUser;
 
   const handleLogout = () => {
@@ -18,7 +19,6 @@ export default function ProfileScreen({ navigation }) {
           onPress: async () => {
             try {
               await signOut(auth);
-              navigation.navigate('Login');
             } catch (error) {
               console.error('❌ Σφάλμα αποσύνδεσης:', error);
               Alert.alert('Σφάλμα', 'Δεν μπόρεσε να αποσυνδεθεί.');

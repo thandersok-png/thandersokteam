@@ -1,186 +1,169 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
-import COLORS from '../theme/colors';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { onAuthStateChanged } from 'firebase/auth';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
+import { auth } from './firebase';
+import AddSpotScreen from './screens/AddSpotScreen';
+import BookingScreen from './screens/BookingScreen';
+import ListScreen from './screens/ListScreen';
+import LoginScreen from './screens/LoginScreen';
+import MapScreen from './screens/MapScreen';
+import MySpotsScreen from './screens/MySpotsScreen';
+import NotificationsScreen from './screens/NotificationsScreen';
+import OwnerGuideScreen from './screens/OwnerGuideScreen';
+import OwnerStripeSetupScreen from './screens/OwnerStripeSetupScreen';
+import PaymentScreen from './screens/PaymentScreen';
+import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
+import ProfileScreen from './screens/ProfileScreen';
+import QRCodeScreen from './screens/QRCodeScreen';
+import QRScannerScreen from './screens/QRScannerScreen';
+import RegisterScreen from './screens/RegisterScreen';
+import ReviewsScreen from './screens/ReviewsScreen';
+import COLORS from './theme/colors';
 
-export default function LoginScreen({ navigation }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+const Drawer = createDrawerNavigator();
+const AuthStack = createNativeStackNavigator();
 
-  const handleLogin = async () => {
-    const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail || !password) {
-      Alert.alert('Σφάλμα', 'Συμπληρώστε email και κωδικό.');
-      return;
-    }
+const drawerIcons = {
+  Λίστα: 'list',
+  Χάρτης: 'map',
+  Προσθήκη: 'add-circle',
+  'Οι Θέσεις μου': 'car',
+  'Σύνδεση Stripe': 'card',
+  Ειδοποιήσεις: 'notifications',
+  Προφίλ: 'person',
+  'Οδηγός Ιδιοκτήτη': 'book',
+};
 
-    setLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, normalizedEmail, password);
-    } catch (error) {
-      console.error('❌ Σφάλμα σύνδεσης:', error);
-      let message = 'Παρουσιάστηκε σφάλμα.';
-      if (error.code === 'auth/user-not-found') {
-        message = 'Δεν βρέθηκε χρήστης με αυτό το email.';
-      } else if (error.code === 'auth/wrong-password') {
-        message = 'Λάθος κωδικός.';
-      } else if (error.code === 'auth/invalid-email') {
-        message = 'Μη έγκυρο email.';
-      } else if (error.code === 'auth/invalid-credential') {
-        message = 'Λάθος email ή κωδικός.';
+function AppDrawer() {
+  return (
+    <Drawer.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: true,
+        drawerActiveTintColor: COLORS.primary,
+        drawerInactiveTintColor: COLORS.text,
+        drawerLabelStyle: { fontSize: 15 },
+        drawerIcon: ({ color, size }) => (
+          <Ionicons
+            name={drawerIcons[route.name] || 'ellipse'}
+            size={size}
+            color={color}
+          />
+        ),
+      })}
+    >
+      <Drawer.Screen name="Λίστα" component={ListScreen} />
+      <Drawer.Screen name="Χάρτης" component={MapScreen} />
+      <Drawer.Screen name="Προσθήκη" component={AddSpotScreen} />
+      <Drawer.Screen name="Οι Θέσεις μου" component={MySpotsScreen} />
+      <Drawer.Screen name="Σύνδεση Stripe" component={OwnerStripeSetupScreen} />
+      <Drawer.Screen name="Ειδοποιήσεις" component={NotificationsScreen} />
+      <Drawer.Screen name="Προφίλ" component={ProfileScreen} />
+      <Drawer.Screen
+        name="Οδηγός Ιδιοκτήτη"
+        component={OwnerGuideScreen}
+        options={{ title: 'Οδηγός Ιδιοκτήτη' }}
+      />
+      <Drawer.Screen
+        name="Κράτηση"
+        component={BookingScreen}
+        options={{ drawerItemStyle: { display: 'none' } }}
+      />
+      <Drawer.Screen
+        name="Payment"
+        component={PaymentScreen}
+        options={{ drawerItemStyle: { display: 'none' } }}
+      />
+      <Drawer.Screen
+        name="Reviews"
+        component={ReviewsScreen}
+        options={{ drawerItemStyle: { display: 'none' } }}
+      />
+      <Drawer.Screen
+        name="QRCode"
+        component={QRCodeScreen}
+        options={{ drawerItemStyle: { display: 'none' } }}
+      />
+      <Drawer.Screen
+        name="QRScanner"
+        component={QRScannerScreen}
+        options={{ drawerItemStyle: { display: 'none' } }}
+      />
+    </Drawer.Navigator>
+  );
+}
+
+function AuthenticationStack() {
+  return (
+    <AuthStack.Navigator>
+      <AuthStack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{ headerShown: false }}
+      />
+      <AuthStack.Screen
+        name="Register"
+        component={RegisterScreen}
+        options={{ title: 'Εγγραφή' }}
+      />
+      <AuthStack.Screen
+        name="PrivacyPolicy"
+        component={PrivacyPolicyScreen}
+        options={{ title: 'Πολιτική Απορρήτου' }}
+      />
+    </AuthStack.Navigator>
+  );
+}
+
+export default function App() {
+  const [user, setUser] = useState(null);
+  const [initializing, setInitializing] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (currentUser) => {
+        setUser(currentUser);
+        setInitializing(false);
+      },
+      (error) => {
+        console.error('Σφάλμα ελέγχου σύνδεσης:', error);
+        setInitializing(false);
       }
-      Alert.alert('Σφάλμα', message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    );
+
+    return unsubscribe;
+  }, []);
+
+  if (initializing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Φόρτωση...</Text>
+      </View>
+    );
+  }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View style={styles.innerContainer}>
-        <Text style={styles.title}>🚗 ParkShare</Text>
-        <Text style={styles.subtitle}>Συνδεθείτε για να συνεχίσετε</Text>
-
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="email@example.com"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          autoCorrect={false}
-          autoComplete="off"
-          textContentType="none"
-          importantForAutofill="no"
-          keyboardType="email-address"
-        />
-
-        <Text style={styles.label}>Κωδικός</Text>
-        <View style={styles.passwordContainer} importantForAutofill="no">
-          <TextInput
-            style={styles.passwordInput}
-            placeholder="••••••••"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            autoComplete="off"
-            textContentType="none"
-            importantForAutofill="no"
-            autoCorrect={false}
-            autoCapitalize="none"
-          />
-          <TouchableOpacity
-            style={styles.eyeButton}
-            onPress={() => setShowPassword((previous) => !previous)}
-            accessibilityRole="button"
-            accessibilityLabel={
-              showPassword ? 'Απόκρυψη κωδικού' : 'Εμφάνιση κωδικού'
-            }
-          >
-            <Text style={styles.eyeText}>{showPassword ? '🙈' : '👁️'}</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text style={styles.buttonText}>Σύνδεση</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.registerLink}
-          onPress={() => navigation.navigate('Register')}
-        >
-          <Text style={styles.registerText}>
-            Δεν έχετε λογαριασμό;{' '}
-            <Text style={styles.registerBold}>Εγγραφή</Text>
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+    <NavigationContainer>
+      {user ? <AppDrawer /> : <AuthenticationStack />}
+    </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  innerContainer: { flex: 1, justifyContent: 'center', padding: 30 },
-  title: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.textLight,
-    textAlign: 'center',
-    marginBottom: 40,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: COLORS.white,
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    marginBottom: 16,
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    marginBottom: 16,
-  },
-  passwordInput: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: COLORS.white,
-    padding: 14,
-    fontSize: 16,
-    color: COLORS.text,
-  },
-  eyeButton: { paddingHorizontal: 14 },
-  eyeText: { fontSize: 18 },
-  button: {
-    backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.background,
   },
-  buttonDisabled: { backgroundColor: '#999' },
-  buttonText: { color: COLORS.white, fontWeight: 'bold', fontSize: 18 },
-  registerLink: { marginTop: 20, alignItems: 'center' },
-  registerText: { fontSize: 16, color: COLORS.textLight },
-  registerBold: { color: COLORS.primary, fontWeight: 'bold' },
+  loadingText: {
+    marginTop: 12,
+    color: COLORS.textLight,
+    fontSize: 16,
+  },
 });
