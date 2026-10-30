@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Alert, Text, TextInput, useLanguage } from '../i18n';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import COLORS from '../theme/colors';
 
 export default function LoginScreen({ navigation }) {
+  const { language, setLanguage } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -56,6 +55,34 @@ export default function LoginScreen({ navigation }) {
       <View style={styles.innerContainer}>
         <Text style={styles.title}>🚗 ParkShare</Text>
         <Text style={styles.subtitle}>Συνδεθείτε για να συνεχίσετε</Text>
+        <View style={styles.languageOptions}>
+          <TouchableOpacity
+            style={[styles.languageButton, language === 'el' && styles.languageButtonActive]}
+            onPress={async () => {
+              try {
+                await setLanguage('el');
+              } catch (error) {
+                console.error('Could not save the selected app language:', error);
+                Alert.alert('Σφάλμα', 'Δεν ήταν δυνατή η αποθήκευση της γλώσσας.');
+              }
+            }}
+          >
+            <Text style={[styles.languageButtonText, language === 'el' && styles.languageButtonTextActive]}>Ελληνικά</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.languageButton, language === 'en' && styles.languageButtonActive]}
+            onPress={async () => {
+              try {
+                await setLanguage('en');
+              } catch (error) {
+                console.error('Could not save the selected app language:', error);
+                Alert.alert('Error', 'Could not save the language preference.');
+              }
+            }}
+          >
+            <Text style={[styles.languageButtonText, language === 'en' && styles.languageButtonTextActive]}>English</Text>
+          </TouchableOpacity>
+        </View>
 
         <Text style={styles.label}>Email</Text>
         <TextInput
@@ -126,6 +153,11 @@ const styles = StyleSheet.create({
   innerContainer: { flex: 1, justifyContent: 'center', padding: 30 },
   title: { fontSize: 40, fontWeight: 'bold', color: COLORS.primary, textAlign: 'center', marginBottom: 10 },
   subtitle: { fontSize: 16, color: COLORS.textLight, textAlign: 'center', marginBottom: 40 },
+  languageOptions: { flexDirection: 'row', justifyContent: 'center', gap: 12, marginTop: -24, marginBottom: 24 },
+  languageButton: { borderWidth: 1, borderColor: COLORS.border, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 14 },
+  languageButtonActive: { borderColor: COLORS.primary, backgroundColor: '#eff4ff' },
+  languageButtonText: { color: COLORS.textLight, fontWeight: '600' },
+  languageButtonTextActive: { color: COLORS.primary },
   label: { fontSize: 16, fontWeight: '600', color: COLORS.text, marginBottom: 6 },
   input: { backgroundColor: COLORS.white, borderRadius: 10, padding: 14, fontSize: 16, borderWidth: 1, borderColor: COLORS.border, marginBottom: 16 },
   passwordContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.white, borderRadius: 10, borderWidth: 1, borderColor: COLORS.border, marginBottom: 16 },

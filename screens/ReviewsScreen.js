@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, Text, TextInput, useLanguage } from '../i18n';
 import { collection, doc, getDocs, query, runTransaction, serverTimestamp, where } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 import COLORS from '../theme/colors';
 
-const StarRating = ({ value, onChange, disabled = false }) => (
+const StarRating = ({ value, onChange, disabled = false, language }) => (
   <View style={styles.starsRow}>
     {[1, 2, 3, 4, 5].map((star) => (
-      <TouchableOpacity key={star} onPress={() => onChange?.(star)} disabled={disabled} accessibilityLabel={`${star} αστέρια`}>
+      <TouchableOpacity key={star} onPress={() => onChange?.(star)} disabled={disabled} accessibilityLabel={language === 'en' ? `${star} stars` : `${star} αστέρια`}>
         <Text style={[styles.star, star <= value && styles.starSelected]}>★</Text>
       </TouchableOpacity>
     ))}
@@ -15,6 +16,7 @@ const StarRating = ({ value, onChange, disabled = false }) => (
 );
 
 export default function ReviewsScreen({ route }) {
+  const { language } = useLanguage();
   const { spot } = route.params || {};
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
@@ -89,7 +91,7 @@ export default function ReviewsScreen({ route }) {
       <Text style={styles.title}>Αξιολόγηση θέσης</Text>
       <Text style={styles.spotTitle}>{spot.title}</Text>
       <Text style={styles.label}>Η βαθμολογία σας</Text>
-      <StarRating value={rating} onChange={setRating} />
+      <StarRating value={rating} onChange={setRating} language={language} />
       <TextInput
         style={styles.input}
         placeholder="Πείτε μας την εμπειρία σας (προαιρετικό)"

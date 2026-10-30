@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
-  Text,
   ActivityIndicator,
   TouchableOpacity,
   Modal,
-  TextInput,
-  Alert,
   ScrollView,
 } from 'react-native';
+import { Alert, Text, TextInput, useLanguage } from '../i18n';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
@@ -40,6 +38,7 @@ const CITIES = [
 const getCityByName = (name) => CITIES.find(city => city.name === name);
 
 export default function MapScreen({ navigation }) {
+  const { language } = useLanguage();
   const [location, setLocation] = useState(null);
   const [spots, setSpots] = useState([]);
   const [selectedSpot, setSelectedSpot] = useState(null);
@@ -246,7 +245,7 @@ export default function MapScreen({ navigation }) {
                 key={spot.id}
                 coordinate={{ latitude: lat, longitude: lng }}
                 title={spot.title}
-                description={`${spot.price} €/ώρα`}
+                description={`${spot.price} ${language === 'en' ? '€/hour' : '€/ώρα'}`}
                 onPress={() => handleMarkerPress(spot)}
                 pinColor={
                   bookedSpotIds.includes(spot.id)

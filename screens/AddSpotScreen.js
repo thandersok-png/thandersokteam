@@ -1,14 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import {
   View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
   ActivityIndicator,
 }
 from 'react-native';
+import { Text, TextInput } from '../i18n';
 import { useFocusEffect } from '@react-navigation/native';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../firebase';

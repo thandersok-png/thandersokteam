@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { onAuthStateChanged } from 'firebase/auth';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { auth } from './firebase';
+import { LanguageProvider, Text, useLanguage } from './i18n';
 import AddSpotScreen from './screens/AddSpotScreen';
 import BookingScreen from './screens/BookingScreen';
 import ListScreen from './screens/ListScreen';
@@ -39,6 +40,8 @@ const drawerIcons = {
 };
 
 function AppDrawer() {
+  const { language } = useLanguage();
+  const english = language === 'en';
   return (
     <Drawer.Navigator
       screenOptions={({ route }) => ({
@@ -55,48 +58,50 @@ function AppDrawer() {
         ),
       })}
     >
-      <Drawer.Screen name="Λίστα" component={ListScreen} />
-      <Drawer.Screen name="Χάρτης" component={MapScreen} />
-      <Drawer.Screen name="Προσθήκη" component={AddSpotScreen} />
-      <Drawer.Screen name="Οι Θέσεις μου" component={MySpotsScreen} />
-      <Drawer.Screen name="Σύνδεση Stripe" component={OwnerStripeSetupScreen} />
-      <Drawer.Screen name="Ειδοποιήσεις" component={NotificationsScreen} />
-      <Drawer.Screen name="Προφίλ" component={ProfileScreen} />
+      <Drawer.Screen name="Λίστα" component={ListScreen} options={{ title: english ? 'List' : 'Λίστα' }} />
+      <Drawer.Screen name="Χάρτης" component={MapScreen} options={{ title: english ? 'Map' : 'Χάρτης' }} />
+      <Drawer.Screen name="Προσθήκη" component={AddSpotScreen} options={{ title: english ? 'Add a spot' : 'Προσθήκη' }} />
+      <Drawer.Screen name="Οι Θέσεις μου" component={MySpotsScreen} options={{ title: english ? 'My spots' : 'Οι Θέσεις μου' }} />
+      <Drawer.Screen name="Σύνδεση Stripe" component={OwnerStripeSetupScreen} options={{ title: english ? 'Stripe setup' : 'Σύνδεση Stripe' }} />
+      <Drawer.Screen name="Ειδοποιήσεις" component={NotificationsScreen} options={{ title: english ? 'Notifications' : 'Ειδοποιήσεις' }} />
+      <Drawer.Screen name="Προφίλ" component={ProfileScreen} options={{ title: english ? 'Profile' : 'Προφίλ' }} />
       <Drawer.Screen
         name="Οδηγός Ιδιοκτήτη"
         component={OwnerGuideScreen}
-        options={{ title: 'Οδηγός Ιδιοκτήτη' }}
+        options={{ title: english ? 'Owner guide' : 'Οδηγός Ιδιοκτήτη' }}
       />
       <Drawer.Screen
         name="Κράτηση"
         component={BookingScreen}
-        options={{ drawerItemStyle: { display: 'none' } }}
+        options={{ title: english ? 'Booking' : 'Κράτηση', drawerItemStyle: { display: 'none' } }}
       />
       <Drawer.Screen
         name="Payment"
         component={PaymentScreen}
-        options={{ drawerItemStyle: { display: 'none' } }}
+        options={{ title: english ? 'Payment' : 'Πληρωμή', drawerItemStyle: { display: 'none' } }}
       />
       <Drawer.Screen
         name="Reviews"
         component={ReviewsScreen}
-        options={{ drawerItemStyle: { display: 'none' } }}
+        options={{ title: english ? 'Reviews' : 'Αξιολογήσεις', drawerItemStyle: { display: 'none' } }}
       />
       <Drawer.Screen
         name="QRCode"
         component={QRCodeScreen}
-        options={{ drawerItemStyle: { display: 'none' } }}
+        options={{ title: english ? 'QR check-in' : 'QR Check-in', drawerItemStyle: { display: 'none' } }}
       />
       <Drawer.Screen
         name="QRScanner"
         component={QRScannerScreen}
-        options={{ drawerItemStyle: { display: 'none' } }}
+        options={{ title: english ? 'Scan QR code' : 'Σάρωση QR', drawerItemStyle: { display: 'none' } }}
       />
     </Drawer.Navigator>
   );
 }
 
 function AuthenticationStack() {
+  const { language } = useLanguage();
+  const english = language === 'en';
   return (
     <AuthStack.Navigator>
       <AuthStack.Screen
@@ -107,20 +112,21 @@ function AuthenticationStack() {
       <AuthStack.Screen
         name="Register"
         component={RegisterScreen}
-        options={{ title: 'Εγγραφή' }}
+        options={{ title: english ? 'Sign up' : 'Εγγραφή' }}
       />
       <AuthStack.Screen
         name="PrivacyPolicy"
         component={PrivacyPolicyScreen}
-        options={{ title: 'Πολιτική Απορρήτου' }}
+        options={{ title: english ? 'Privacy Policy' : 'Πολιτική Απορρήτου' }}
       />
     </AuthStack.Navigator>
   );
 }
 
-export default function App() {
+function AppContent() {
   const [user, setUser] = useState(null);
   const [initializing, setInitializing] = useState(true);
+  const { ready: languageReady } = useLanguage();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
@@ -138,7 +144,7 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  if (initializing) {
+  if (initializing || !languageReady) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
@@ -151,6 +157,14 @@ export default function App() {
     <NavigationContainer>
       {user ? <AppDrawer /> : <AuthenticationStack />}
     </NavigationContainer>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }
 

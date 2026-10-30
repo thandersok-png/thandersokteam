@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ScrollView,
-  TextInput,
 } from 'react-native';
+import { Alert, Text, TextInput, useLanguage } from '../i18n';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { collection, addDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
@@ -18,6 +16,7 @@ import { registerForPushNotifications } from '../utils/notifications';
 import COLORS from '../theme/colors';
 
 export default function BookingScreen({ route, navigation }) {
+  const { language } = useLanguage();
   const routeParams = route.params || {};
   const spot = routeParams.spot || { title: 'Θέση', price: '1.50' };
   const [date, setDate] = useState(new Date());
@@ -219,7 +218,9 @@ export default function BookingScreen({ route, navigation }) {
 
       <Text style={styles.label}>📆 Ημερομηνία</Text>
       <TouchableOpacity style={styles.dateButton} onPress={() => setShowDatePicker(true)}>
-        <Text style={styles.dateButtonText}>{date.toLocaleDateString('el-GR')}</Text>
+        <Text style={styles.dateButtonText}>
+          {date.toLocaleDateString(language === 'en' ? 'en-GB' : 'el-GR')}
+        </Text>
       </TouchableOpacity>
       {showDatePicker && (
         <DateTimePicker
@@ -236,7 +237,7 @@ export default function BookingScreen({ route, navigation }) {
       <Text style={styles.label}>⏰ Ώρα έναρξης</Text>
       <TouchableOpacity style={styles.dateButton} onPress={() => setShowTimePicker(true)}>
         <Text style={styles.dateButtonText}>
-          {date.toLocaleTimeString('el-GR', { hour: '2-digit', minute: '2-digit' })}
+          {date.toLocaleTimeString(language === 'en' ? 'en-GB' : 'el-GR', { hour: '2-digit', minute: '2-digit' })}
         </Text>
       </TouchableOpacity>
       {showTimePicker && (

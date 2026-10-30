@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
+import { Alert, Text } from '../i18n';
 import { useStripe } from '@stripe/stripe-react-native';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';

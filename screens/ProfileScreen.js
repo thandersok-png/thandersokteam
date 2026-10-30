@@ -1,11 +1,27 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Alert, Text, useLanguage } from '../i18n';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import COLORS from '../theme/colors';
 
 export default function ProfileScreen() {
+  const { language, setLanguage } = useLanguage();
   const user = auth.currentUser;
+
+  const handleLanguageChange = async (nextLanguage) => {
+    try {
+      await setLanguage(nextLanguage);
+    } catch (error) {
+      console.error('Could not save the selected app language:', error);
+      Alert.alert(
+        language === 'en' ? 'Error' : 'Σφάλμα',
+        language === 'en'
+          ? 'Could not save the language preference.'
+          : 'Δεν ήταν δυνατή η αποθήκευση της γλώσσας.'
+      );
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -39,6 +55,34 @@ export default function ProfileScreen() {
 
         <Text style={styles.label}>UID</Text>
         <Text style={styles.value}>{user?.uid || 'Δεν υπάρχει'}</Text>
+      </View>
+
+      <Text style={styles.languageLabel}>🌐 Γλώσσα εφαρμογής</Text>
+      <View style={styles.languageOptions}>
+        {[
+          { code: 'el', label: 'Ελληνικά' },
+          { code: 'en', label: 'English' },
+        ].map((option) => (
+          <TouchableOpacity
+            key={option.code}
+            style={[
+              styles.languageButton,
+              language === option.code && styles.languageButtonActive,
+            ]}
+            onPress={() => handleLanguageChange(option.code)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: language === option.code }}
+          >
+            <Text
+              style={[
+                styles.languageButtonText,
+                language === option.code && styles.languageButtonTextActive,
+              ]}
+            >
+              {option.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -103,6 +147,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 30,
   },
+  languageLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginTop: 22,
+    marginBottom: 8,
+  },
+  languageOptions: { flexDirection: 'row', gap: 10 },
+  languageButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+  },
+  languageButtonActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: '#eff4ff',
+  },
+  languageButtonText: { color: COLORS.text, fontWeight: '600' },
+  languageButtonTextActive: { color: COLORS.primary },
   logoutButtonText: {
     color: COLORS.white,
     fontWeight: 'bold',

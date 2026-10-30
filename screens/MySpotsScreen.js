@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Modal,
-  TextInput,
 } from 'react-native';
+import { Alert, Text, TextInput } from '../i18n';
 import {
   collection,
   query,

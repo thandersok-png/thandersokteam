@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   Switch,
   ScrollView,
-  Alert,
 } from 'react-native';
+import { Alert, Text } from '../i18n';
 import {
   registerForPushNotifications,
   sendLocalNotification,

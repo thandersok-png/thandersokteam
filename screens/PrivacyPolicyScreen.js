@@ -1,5 +1,6 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { Text } from '../i18n';
 import COLORS from '../theme/colors';
 
 export default function PrivacyPolicyScreen() {

@@ -1,15 +1,14 @@
 ﻿import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   FlatList,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  TextInput,
   Linking,
   RefreshControl,
 } from 'react-native';
+import { Text, TextInput } from '../i18n';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import NetInfo from '@react-native-community/netinfo';
 import { db } from '../firebase';
