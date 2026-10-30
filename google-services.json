@@ -16,6 +16,31 @@
       "api_key": [
         {
           "current_key": "AIzaSyCo2IK9bt_DKQ5aFq69h_9yA4c8EWG3Tds"
+        },
+        {
+          "current_key": "AIzaSyDySCfqGxSXSZcZACy804rC2KYEZHh9cEM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:833584209576:android:2a87848c098ba421c2ac9d",
+        "android_client_info": {
+          "package_name": "com.parkshare.gr"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCo2IK9bt_DKQ5aFq69h_9yA4c8EWG3Tds"
+        },
+        {
+          "current_key": "AIzaSyDySCfqGxSXSZcZACy804rC2KYEZHh9cEM"
         }
       ],
       "services": {

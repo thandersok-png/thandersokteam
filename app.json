@@ -37,7 +37,7 @@
           "apiKey": "AIzaSyCo2IK9bt_DKQ5aFq69h_9yA4c8EWG3Tds"
         }
       },
-      "package": "com.parkshare.app",
+      "package": "com.parkshare.gr",
       "adaptiveIcon": {
         "foregroundImage": "./icon.png",
         "backgroundColor": "#155EEF"
