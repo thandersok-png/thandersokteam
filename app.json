@@ -24,9 +24,20 @@
           "resizeMode": "contain",
           "backgroundColor": "#155EEF"
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.parkshare.gr"
+        }
+      ],
+      "expo-font",
+      "expo-status-bar"
     ],
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     },
