@@ -14,6 +14,9 @@
     },
     "preview": {
       "distribution": "internal",
+      "env": {
+        "GRADLE_OPTS": "-Xmx4096m"
+      },
       "android": {
         "buildType": "apk"
       }

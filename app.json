@@ -12,7 +12,8 @@
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic": true
+            "usesCleartextTraffic": true,
+            "extraProguardRules": "-keep class androidx.work.impl.WorkDatabase_Impl { *; }\n-keep class * extends androidx.work.ListenableWorker { *; }"
           }
         }
       ],
