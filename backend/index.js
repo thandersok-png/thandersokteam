@@ -54,7 +54,12 @@ app.post('/create-payment-intent', async (req, res) => {
       return res.status(404).json({ error: 'Spot not found' });
     }
 
-    const { ownerId } = spotSnapshot.data();
+    const spotData = spotSnapshot.data();
+    if (!spotData || typeof spotData !== 'object') {
+      return res.status(400).json({ error: 'Spot has no valid data' });
+    }
+
+    const { ownerId } = spotData;
 
     if (typeof ownerId !== 'string' || ownerId.trim() === '') {
       return res.status(400).json({ error: 'Spot has no valid ownerId' });
@@ -71,6 +76,10 @@ app.post('/create-payment-intent', async (req, res) => {
     }
 
     const ownerData = ownerSnapshot.data();
+    if (!ownerData || typeof ownerData !== 'object') {
+      return res.status(400).json({ error: 'Spot owner has no valid data' });
+    }
+
     const stripeAccountId =
       typeof ownerData.stripeAccountId === 'string'
         ? ownerData.stripeAccountId.trim()
