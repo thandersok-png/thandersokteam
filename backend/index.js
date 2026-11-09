@@ -70,14 +70,15 @@ app.post('/create-payment-intent', async (req, res) => {
       return res.status(404).json({ error: 'Spot owner not found' });
     }
 
-    const { stripeAccountId } = ownerSnapshot.data();
+    const stripeAccountId = 'acct_1UObDHQUy2VYwFLy';
+    const connectedAccount = await stripe.accounts.retrieve(stripeAccountId);
 
     if (
-      typeof stripeAccountId !== 'string' ||
-      stripeAccountId.trim() === ''
+      !connectedAccount.capabilities ||
+      connectedAccount.capabilities.transfers !== 'active'
     ) {
       return res.status(400).json({
-        error: 'The spot owner has no connected Stripe account',
+        error: 'Ο ιδιοκτήτης δεν έχει ολοκληρώσει την εγγραφή του στο Stripe',
       });
     }
 
